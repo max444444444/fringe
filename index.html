@@ -1,0 +1,973 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><meta property="og:title" content="Fringe"><meta property="og:description" content="A daily pin-drop puzzle. Find a spot where every rule holds, as far from the crowd as you dare."></head><body><title>Fringe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A daily pin-drop puzzle. Find a spot where every rule holds, as far from the crowd as you dare.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow column like a surveyor's field sheet; the board is the hero. */
+:root {
+  --paper: #edf1ed;
+  --sheet: #f7f9f6;
+  --ink: #1c2832;
+  --muted: #586770;
+  --rule: #cfd9d2;
+  --grid-minor: #dde5df;
+  --grid-major: #c3d0c7;
+  --accent: #e2572b;
+  --valid: #1f8a63;
+  --dotA: #d9433a;
+  --dotB: #12858a;
+  --dotC: #b9820f;
+  --dotD: #7a4aa3;
+  --t-herd: #9aa5a0;
+  --t-drift: #3d7bd9;
+  --t-edge: #1f9a5e;
+  --t-fringe: #d39a12;
+  --t-sliver: #8a45c9;
+  --t-miss: #2b2f33;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10171d; --sheet: #172129; --ink: #e2e9e4; --muted: #98a7ad;
+    --rule: #2a3741; --grid-minor: #1d2830; --grid-major: #2b3a44;
+    --accent: #ff7a4a; --valid: #3fc08c;
+    --dotA: #ff6b5f; --dotB: #33b9bd; --dotC: #e5ae35; --dotD: #ae7de0;
+    --t-herd: #6f7c78; --t-drift: #6aa1ff; --t-edge: #3fc07d; --t-fringe: #f0bb3a; --t-sliver: #b67cf0; --t-miss: #46505a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10171d; --sheet: #172129; --ink: #e2e9e4; --muted: #98a7ad;
+  --rule: #2a3741; --grid-minor: #1d2830; --grid-major: #2b3a44;
+  --accent: #ff7a4a; --valid: #3fc08c;
+  --dotA: #ff6b5f; --dotB: #33b9bd; --dotC: #e5ae35; --dotD: #ae7de0;
+  --t-herd: #6f7c78; --t-drift: #6aa1ff; --t-edge: #3fc07d; --t-fringe: #f0bb3a; --t-sliver: #b67cf0; --t-miss: #46505a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px 40px;
+}
+.wrap { max-width: 540px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1.5px solid var(--ink); }
+.wordmark { font-family: var(--font-display); font-weight: 800; font-size: 34px; letter-spacing: -0.02em; line-height: 1; display: flex; align-items: baseline; gap: 2px; }
+.wordmark .pin { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); display: inline-block; transform: translateY(-2px); margin-left: 3px; }
+.meta { font-family: var(--font-data); font-size: 12px; color: var(--muted); text-align: right; letter-spacing: 0.02em; }
+.meta b { color: var(--ink); font-weight: 500; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.btn {
+  appearance: none; border: 1.5px solid var(--ink); background: var(--ink); color: var(--sheet);
+  font-family: var(--font-display); font-weight: 800; font-size: 18px; letter-spacing: 0.01em;
+  padding: 12px 18px; border-radius: 999px; min-height: 48px; transition: transform .08s ease, opacity .15s;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn:focus-visible, .toggle:focus-visible, canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.row.spread { justify-content: space-between; }
+.grow { flex: 1 1 0; min-width: 0; }
+
+/* intro */
+.intro h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(30px, 8vw, 42px); line-height: 1.02; letter-spacing: -0.025em; margin: 6px 0 4px; text-wrap: balance; }
+.intro p.lede { color: var(--muted); margin: 0; font-size: 17px; }
+.howto { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.howto li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; }
+.howto .n { font-family: var(--font-data); font-size: 12px; color: var(--sheet); background: var(--ink); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; margin-top: 1px; }
+.tierkey { display: flex; flex-wrap: wrap; gap: 6px 12px; font-family: var(--font-data); font-size: 12px; color: var(--muted); }
+.tierkey span { display: inline-flex; gap: 5px; align-items: center; }
+.sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+/* board */
+.boardhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.boardno { font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: -0.01em; }
+.steps { display: flex; gap: 4px; }
+.steps i { width: 18px; height: 6px; border-radius: 3px; background: var(--rule); display: block; }
+.steps i.done { background: var(--ink); }
+.steps i.now { background: var(--accent); }
+.rules { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.rules li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; font-weight: 700; font-size: 16px; }
+.rules .ico { display: inline-flex; gap: 3px; flex: none; }
+.chipdot { width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; color: #fff; font-family: var(--font-data); font-size: 11px; font-weight: 500; }
+.chipring { width: 20px; height: 20px; border-radius: 50%; border: 1.5px dashed var(--ink); display: inline-grid; place-items: center; font-family: var(--font-data); font-size: 10px; }
+.chipline { width: 20px; height: 20px; display: inline-grid; place-items: center; }
+.chipline::before { content: ""; width: 20px; height: 2px; background: var(--ink); transform: rotate(-35deg); }
+.chipframe { width: 20px; height: 20px; border: 2px solid var(--ink); border-radius: 3px; display: inline-block; }
+.canvasbox { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; }
+canvas#board { width: 100%; height: 100%; display: block; touch-action: none; border-radius: 6px; cursor: crosshair; background: var(--sheet); }
+.timer { height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; }
+.timer > div { height: 100%; background: var(--ink); width: 100%; transform-origin: left center; }
+.timer.low > div { background: var(--accent); }
+.controls { display: flex; gap: 10px; align-items: stretch; }
+.toggle {
+  appearance: none; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); border-radius: 999px;
+  padding: 0 16px; min-height: 48px; font-family: var(--font-data); font-size: 13px; display: inline-flex; align-items: center; gap: 8px;
+}
+.toggle .box { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; display: inline-grid; place-items: center; }
+.toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.toggle[aria-pressed="true"] .box::after { content: ""; width: 8px; height: 8px; background: #fff; border-radius: 2px; }
+.hint { font-family: var(--font-data); font-size: 12px; color: var(--muted); min-height: 1.4em; margin: 0; }
+
+/* result */
+.verdict { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: center; padding: 14px 16px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; }
+.verdict .pts { grid-row: span 2; font-family: var(--font-display); font-weight: 800; font-size: 46px; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.verdict .tier { font-family: var(--font-display); font-weight: 800; font-size: 22px; line-height: 1.1; display: flex; gap: 8px; align-items: center; }
+.verdict .why { color: var(--muted); font-size: 14px; margin: 0; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--font-data); font-size: 11.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend .sq { width: 12px; height: 12px; border-radius: 3px; }
+.verdict.sliver { border-color: var(--t-sliver); box-shadow: 0 0 0 3px color-mix(in srgb, var(--t-sliver) 25%, transparent); }
+
+/* summary */
+.total { font-family: var(--font-display); font-weight: 800; font-size: clamp(56px, 18vw, 84px); line-height: .95; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+.totlabel { font-family: var(--font-data); font-size: 12px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.strip div { aspect-ratio: 1 / 1; border-radius: 8px; display: grid; place-items: center; font-family: var(--font-data); font-size: 13px; color: #fff; font-variant-numeric: tabular-nums; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stats div { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.stats b { display: block; font-family: var(--font-display); font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; }
+.stats span { font-family: var(--font-data); font-size: 11px; color: var(--muted); }
+pre.share { margin: 0; padding: 12px 14px; background: var(--sheet); border: 1px dashed var(--rule); border-radius: 10px; font-family: var(--font-data); font-size: 14px; white-space: pre-wrap; user-select: all; }
+.small { font-size: 13px; color: var(--muted); margin: 0; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--sheet); padding: 10px 16px; border-radius: 999px; font-family: var(--font-data); font-size: 13px; z-index: 20; }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="wordmark" aria-label="Fringe">Fringe<span class="pin" aria-hidden="true"></span></div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section id="intro" class="intro" hidden>
+    <h1>Find the spot everyone else misses.</h1>
+    <p class="lede">Seven boards a day. Every board has a few rules. Drop one pin where all of them hold, as far from the crowd as you dare.</p>
+    <ol class="howto">
+      <li><span class="n">1</span><span>Read the rules. Somewhere on the board every rule is true at once. That area is hidden.</span></li>
+      <li><span class="n">2</span><span>Tap to place your pin, drag to adjust, then drop it. Outside the area scores 0.</span></li>
+      <li><span class="n">3</span><span>Quiet corners score more. Tapping where most people tap scores almost nothing.</span></li>
+    </ol>
+    <div class="tierkey" id="tierkey"></div>
+    <div class="row"><button class="btn grow" id="startBtn">Play today's board</button></div>
+    <p class="small">30 seconds per board. Turn on <b>Bold</b> for 1.5× points, but a miss costs 40.</p>
+  </section>
+
+  <section id="play" hidden>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="boardhead">
+        <div class="boardno" id="boardNo">Board 1 of 7</div>
+        <div class="steps" id="steps" aria-hidden="true"></div>
+      </div>
+      <ul class="rules" id="rules"></ul>
+      <div class="canvasbox"><canvas id="board" tabindex="0" aria-label="Game board. Tap to place your pin."></canvas></div>
+      <div class="timer" id="timer"><div id="timerFill"></div></div>
+      <p class="hint" id="hint">Tap the board to place your pin.</p>
+      <div class="controls" id="dropControls">
+        <button class="toggle" id="boldBtn" aria-pressed="false"><span class="box"></span>Bold ×1.5</button>
+        <button class="btn grow" id="dropBtn" disabled>Drop pin</button>
+      </div>
+      <div id="resultBox" hidden style="display:flex;flex-direction:column;gap:12px">
+        <div class="verdict" id="verdict">
+          <div class="pts" id="vPts">0</div>
+          <div class="tier" id="vTier"></div>
+          <p class="why" id="vWhy"></p>
+        </div>
+        <div class="legend">
+          <span><i class="sq" style="background:color-mix(in srgb, var(--valid) 45%, transparent)"></i>Where every rule holds</span>
+          <span><i class="sq" style="background:var(--accent)"></i>Where most players are expected to tap</span>
+        </div>
+        <button class="btn" id="nextBtn">Next board</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="summary" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div>
+      <div class="totlabel" id="sumLabel">Today's score</div>
+      <div class="total" id="sumTotal">0</div>
+    </div>
+    <div class="strip" id="sumStrip"></div>
+    <pre class="share" id="shareText"></pre>
+    <div class="row"><button class="btn grow" id="shareBtn">Copy result</button><button class="btn ghost" id="practiceBtn">Practice board</button></div>
+    <div class="stats" id="stats"></div>
+    <p class="small" id="nextNote"></p>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// Fringe core: deterministic board generation, validity, crowd model, scoring.
+// Pure functions only, shared by the page and the test harness.
+var FRINGE = (function () {
+  var N = 200;          // raster resolution per side
+  var U = 100;          // board size in logical units
+  var CELL = U / N;
+
+  function seedHash(str) {
+    var h = 1779033703 ^ str.length;
+    for (var i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  }
+  function rng(seed) {
+    var a = seedHash(seed);
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function rand(R, lo, hi) { return lo + R() * (hi - lo); }
+  function pick(R, arr) { return arr[Math.floor(R() * arr.length)]; }
+  function shuffle(R, arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(R() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function dist(x1, y1, x2, y2) { var dx = x1 - x2, dy = y1 - y2; return Math.sqrt(dx * dx + dy * dy); }
+
+  var LETTERS = ['A', 'B', 'C', 'D'];
+
+  // ---- rule predicates -------------------------------------------------
+  function test(rule, b, x, y) {
+    var d = b.dots, r = b.rings, l = b.line;
+    switch (rule.t) {
+      case 'closer': return dist(x, y, d[rule.a].x, d[rule.a].y) < dist(x, y, d[rule.b].x, d[rule.b].y);
+      case 'inRing': return dist(x, y, r[rule.c].x, r[rule.c].y) < r[rule.c].r;
+      case 'outRing': return dist(x, y, r[rule.c].x, r[rule.c].y) > r[rule.c].r;
+      case 'oneRing':
+        var i0 = dist(x, y, r[0].x, r[0].y) < r[0].r, i1 = dist(x, y, r[1].x, r[1].y) < r[1].r;
+        return i0 !== i1;
+      case 'side':
+        return sideOf(l, x, y) === sideOf(l, d[rule.a].x, d[rule.a].y);
+      case 'awaySide':
+        return sideOf(l, x, y) !== sideOf(l, d[rule.a].x, d[rule.a].y);
+      case 'frame':
+        var fd = Math.min(x, U - x, y, U - y);
+        return fd < dist(x, y, d[rule.a].x, d[rule.a].y);
+      case 'farFrame':
+        var fd2 = Math.min(x, U - x, y, U - y);
+        return fd2 > dist(x, y, d[rule.a].x, d[rule.a].y);
+    }
+    return false;
+  }
+  function sideOf(l, x, y) {
+    return ((l.x2 - l.x1) * (y - l.y1) - (l.y2 - l.y1) * (x - l.x1)) > 0;
+  }
+  function isValid(b, x, y) {
+    if (x < 0 || y < 0 || x > U || y > U) return false;
+    for (var i = 0; i < b.rules.length; i++) if (!test(b.rules[i], b, x, y)) return false;
+    return true;
+  }
+  function ruleText(rule) {
+    switch (rule.t) {
+      case 'closer': return { text: 'Closer to ' + LETTERS[rule.a] + ' than to ' + LETTERS[rule.b], dots: [rule.a, rule.b] };
+      case 'inRing': return { text: 'Inside ring ' + (rule.c + 1), rings: [rule.c] };
+      case 'outRing': return { text: 'Outside ring ' + (rule.c + 1), rings: [rule.c] };
+      case 'oneRing': return { text: 'Inside exactly one ring', rings: [0, 1] };
+      case 'side': return { text: 'Same side of the line as ' + LETTERS[rule.a], dots: [rule.a], line: true };
+      case 'awaySide': return { text: 'Opposite side of the line from ' + LETTERS[rule.a], dots: [rule.a], line: true };
+      case 'frame': return { text: 'Closer to the frame than to ' + LETTERS[rule.a], dots: [rule.a] };
+      case 'farFrame': return { text: 'Closer to ' + LETTERS[rule.a] + ' than to the frame', dots: [rule.a] };
+    }
+    return { text: '?' };
+  }
+
+  // ---- candidate board -------------------------------------------------
+  function candidate(R, level) {
+    var nd = level < 2 ? 3 : (R() < 0.5 ? 3 : 4);
+    var dots = [];
+    var guard = 0;
+    while (dots.length < nd && guard++ < 500) {
+      var p = { x: rand(R, 12, 88), y: rand(R, 12, 88) };
+      var ok = true;
+      for (var i = 0; i < dots.length; i++) if (dist(p.x, p.y, dots[i].x, dots[i].y) < 22) ok = false;
+      if (ok) dots.push(p);
+    }
+    var nr = R() < 0.55 ? 2 : 1;
+    var rings = [];
+    for (var k = 0; k < nr; k++) rings.push({ x: rand(R, 22, 78), y: rand(R, 22, 78), r: rand(R, 15, 33) });
+    var line = null;
+    if (R() < 0.6) {
+      // a line crossing the board: pick two points on different edges
+      var edges = shuffle(R, [0, 1, 2, 3]);
+      var e1 = edges[0], e2 = edges[1];
+      var pt = function (e) {
+        var t = rand(R, 15, 85);
+        return e === 0 ? { x: t, y: 0 } : e === 1 ? { x: U, y: t } : e === 2 ? { x: t, y: U } : { x: 0, y: t };
+      };
+      var p1 = pt(e1), p2 = pt(e2);
+      line = { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
+    }
+    var pool = [];
+    for (var a = 0; a < nd; a++) for (var bb = 0; bb < nd; bb++) if (a !== bb) pool.push({ t: 'closer', a: a, b: bb, fam: 'dots' });
+    for (var c = 0; c < nr; c++) { pool.push({ t: 'inRing', c: c, fam: 'ring' + c }); pool.push({ t: 'outRing', c: c, fam: 'ring' + c }); }
+    if (nr === 2) pool.push({ t: 'oneRing', fam: 'rings' });
+    if (line) for (var s = 0; s < nd; s++) { pool.push({ t: 'side', a: s, fam: 'line' }); pool.push({ t: 'awaySide', a: s, fam: 'line' }); }
+    for (var f = 0; f < nd; f++) { pool.push({ t: 'frame', a: f, fam: 'frame' }); pool.push({ t: 'farFrame', a: f, fam: 'frame' }); }
+
+    var count = level < 2 ? 2 : level < 5 ? 3 : (R() < 0.5 ? 3 : 4);
+    var rules = [], fams = {}, dotPairs = {};
+    var order = shuffle(R, pool);
+    for (var q = 0; q < order.length && rules.length < count; q++) {
+      var rl = order[q];
+      if (rl.fam === 'dots') {
+        var key = Math.min(rl.a, rl.b) + '-' + Math.max(rl.a, rl.b);
+        if (dotPairs[key]) continue;
+        if ((fams.dots || 0) >= 2) continue;
+        dotPairs[key] = 1; fams.dots = (fams.dots || 0) + 1;
+      } else {
+        if (fams[rl.fam]) continue;
+        if (rl.fam === 'rings' && (fams.ring0 || fams.ring1)) continue;
+        if ((rl.fam === 'ring0' || rl.fam === 'ring1') && fams.rings) continue;
+        fams[rl.fam] = 1;
+      }
+      rules.push({ t: rl.t, a: rl.a, b: rl.b, c: rl.c });
+    }
+    // drop unused elements' visual noise is fine: unused rings/line still drawn as decoys
+    return { dots: dots, rings: rings, line: line, rules: rules };
+  }
+
+  // ---- raster analysis ---------------------------------------------------
+  function rasterize(b, rules) {
+    var m = new Uint8Array(N * N), area = 0;
+    for (var j = 0; j < N; j++) {
+      var y = (j + 0.5) * CELL;
+      for (var i = 0; i < N; i++) {
+        var x = (i + 0.5) * CELL, ok = 1;
+        for (var k = 0; k < rules.length; k++) if (!test(rules[k], b, x, y)) { ok = 0; break; }
+        m[j * N + i] = ok; area += ok;
+      }
+    }
+    return { mask: m, area: area };
+  }
+  function components(mask) {
+    var lab = new Int32Array(N * N).fill(-1), comps = [], stack = [];
+    for (var s = 0; s < N * N; s++) {
+      if (!mask[s] || lab[s] >= 0) continue;
+      var id = comps.length, size = 0, sx = 0, sy = 0;
+      stack.length = 0; stack.push(s); lab[s] = id;
+      while (stack.length) {
+        var c = stack.pop(), ci = c % N, cj = (c / N) | 0;
+        size++; sx += ci; sy += cj;
+        if (ci > 0 && mask[c - 1] && lab[c - 1] < 0) { lab[c - 1] = id; stack.push(c - 1); }
+        if (ci < N - 1 && mask[c + 1] && lab[c + 1] < 0) { lab[c + 1] = id; stack.push(c + 1); }
+        if (cj > 0 && mask[c - N] && lab[c - N] < 0) { lab[c - N] = id; stack.push(c - N); }
+        if (cj < N - 1 && mask[c + N] && lab[c + N] < 0) { lab[c + N] = id; stack.push(c + N); }
+      }
+      comps.push({ id: id, size: size, cx: sx / size, cy: sy / size });
+    }
+    return { labels: lab, comps: comps };
+  }
+
+  // fast low-resolution screen so most rejected candidates cost little
+  function coarse(b, rules, n) {
+    var cs = U / n, area = 0, m = new Uint8Array(n * n);
+    for (var j = 0; j < n; j++) for (var i = 0; i < n; i++) {
+      var x = (i + 0.5) * cs, y = (j + 0.5) * cs, ok = 1;
+      for (var k = 0; k < rules.length; k++) if (!test(rules[k], b, x, y)) { ok = 0; break; }
+      m[j * n + i] = ok; area += ok;
+    }
+    return { m: m, area: area };
+  }
+  function coarsePockets(m, n) {
+    var seen = new Uint8Array(n * n), count = 0, st = [];
+    for (var s = 0; s < n * n; s++) {
+      if (!m[s] || seen[s]) continue;
+      var size = 0; st.length = 0; st.push(s); seen[s] = 1;
+      while (st.length) {
+        var c = st.pop(), ci = c % n; size++;
+        if (ci > 0 && m[c - 1] && !seen[c - 1]) { seen[c - 1] = 1; st.push(c - 1); }
+        if (ci < n - 1 && m[c + 1] && !seen[c + 1]) { seen[c + 1] = 1; st.push(c + 1); }
+        if (c >= n && m[c - n] && !seen[c - n]) { seen[c - n] = 1; st.push(c - n); }
+        if (c < n * n - n && m[c + n] && !seen[c + n]) { seen[c + n] = 1; st.push(c + n); }
+      }
+      if (size >= 3) count++;
+    }
+    return count;
+  }
+
+  var MIN_POCKET = 50; // cells (~0.125% of board)
+  function evaluate(b, level) {
+    if (b.rules.length < 2) return { ok: false, why: 'rules' };
+    var lo = b.rules.length >= 4 ? 0.04 : 0.05, hi = 0.30;
+    var idle = b.rules.length >= 4 ? 0.9 : 0.82;
+    // coarse screen at 50x50
+    var n = 50, c0 = coarse(b, b.rules, n), cf = c0.area / (n * n);
+    if (cf < lo * 0.7 || cf > hi * 1.3) return { ok: false, why: 'coarse area' };
+    for (var k0 = 0; k0 < b.rules.length; k0++) {
+      var w0 = coarse(b, b.rules.slice(0, k0).concat(b.rules.slice(k0 + 1)), n).area;
+      if (c0.area > (idle + 0.06) * w0) return { ok: false, why: 'coarse idle' };
+    }
+    if (coarsePockets(c0.m, n) < 2) return { ok: false, why: 'coarse pockets' };
+    // full resolution checks
+    var full = rasterize(b, b.rules);
+    var frac = full.area / (N * N);
+    if (frac < lo || frac > hi) return { ok: false, why: 'area ' + frac.toFixed(3) };
+    // every rule must matter
+    for (var k = 0; k < b.rules.length; k++) {
+      var without = b.rules.slice(0, k).concat(b.rules.slice(k + 1));
+      var w = rasterize(b, without).area;
+      if (full.area > idle * w) return { ok: false, why: 'rule ' + k + ' idle' };
+    }
+    var cc = components(full.mask);
+    var pockets = cc.comps.filter(function (c) { return c.size >= MIN_POCKET; });
+    var need = level < 1 ? 2 : 2;
+    if (pockets.length < need) return { ok: false, why: 'pockets ' + pockets.length };
+    pockets.sort(function (a, c) { return a.size - c.size; });
+    if (pockets[0].size > 0.3 * full.area) return { ok: false, why: 'no small pocket' };
+    if (pockets.length > 7) return { ok: false, why: 'too fragmented' };
+    return { ok: true, mask: full.mask, area: full.area, labels: cc.labels, comps: cc.comps, pockets: pockets };
+  }
+
+  // ---- crowd model ---------------------------------------------------------
+  // Where a crowd of quick tappers would land: the middle of big pockets,
+  // next to the lettered points, the middle of the board, plus a floor of
+  // people spread everywhere valid. Only valid cells matter for scoring.
+  function crowd(b, ev) {
+    var dens = new Float32Array(N * N);
+    var attractors = [];
+    var big = ev.comps.filter(function (c) { return c.size >= MIN_POCKET; });
+    big.forEach(function (c) {
+      // pull the centroid into the pocket if it falls outside
+      var ci = Math.round(c.cx), cj = Math.round(c.cy);
+      var idx = cj * N + ci;
+      if (ev.labels[idx] !== c.id) {
+        var best = -1, bd = 1e9;
+        for (var s = 0; s < N * N; s++) if (ev.labels[s] === c.id) {
+          var dd = (s % N - c.cx) * (s % N - c.cx) + (((s / N) | 0) - c.cy) * (((s / N) | 0) - c.cy);
+          if (dd < bd) { bd = dd; best = s; }
+        }
+        ci = best % N; cj = (best / N) | 0;
+      }
+      attractors.push({ i: ci, j: cj, w: Math.pow(c.size, 1.35), s: Math.max(4, Math.sqrt(c.size) / 2.6) });
+    });
+    b.dots.forEach(function (d) { attractors.push({ i: d.x / CELL, j: d.y / CELL, w: 0.18 * ev.area, s: 9 }); });
+    attractors.push({ i: N / 2, j: N / 2, w: 0.25 * ev.area, s: 22 });
+    var total = 0;
+    for (var s2 = 0; s2 < N * N; s2++) {
+      if (!ev.mask[s2]) continue;
+      var i = s2 % N, j = (s2 / N) | 0, v = 0;
+      for (var a = 0; a < attractors.length; a++) {
+        var A = attractors[a], dx = i - A.i, dy = j - A.j;
+        v += A.w * Math.exp(-(dx * dx + dy * dy) / (2 * A.s * A.s)) / (A.s * A.s);
+      }
+      dens[s2] = v; total += v;
+    }
+    // uniform floor: 12% of the crowd taps anywhere valid
+    var floor = 0.12 * total / (0.88 * ev.area);
+    var total2 = 0, maxd = 0;
+    for (var s3 = 0; s3 < N * N; s3++) if (ev.mask[s3]) { dens[s3] += floor; total2 += dens[s3]; if (dens[s3] > maxd) maxd = dens[s3]; }
+    // rank table: sorted densities with cumulative mass above
+    var vals = [];
+    for (var s4 = 0; s4 < N * N; s4++) if (ev.mask[s4]) vals.push(dens[s4]);
+    vals.sort(function (p, q) { return q - p; });
+    var cum = new Float64Array(vals.length + 1);
+    for (var t = 0; t < vals.length; t++) cum[t + 1] = cum[t] + vals[t] / total2;
+    return { dens: dens, total: total2, max: maxd, sorted: vals, cum: cum };
+  }
+  // fraction of the crowd that tapped somewhere more crowded than (x, y)
+  function rarity(cr, x, y) {
+    var i = Math.min(N - 1, Math.max(0, Math.floor(x / CELL)));
+    var j = Math.min(N - 1, Math.max(0, Math.floor(y / CELL)));
+    var d = cr.dens[j * N + i];
+    if (!d) {
+      // pin is valid but its cell centre was not: use the densest valid neighbour
+      for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) {
+        var ii = i + di, jj = j + dj;
+        if (ii >= 0 && jj >= 0 && ii < N && jj < N) d = Math.max(d, cr.dens[jj * N + ii]);
+      }
+    }
+    // binary search: count of sorted values strictly greater than d
+    var lo = 0, hi = cr.sorted.length;
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (cr.sorted[mid] > d) lo = mid + 1; else hi = mid; }
+    return cr.cum[lo];
+  }
+
+  var TIERS = [
+    { min: 99, name: 'Sliver', key: 'sliver', emoji: '🟪' },
+    { min: 85, name: 'Fringe', key: 'fringe', emoji: '🟨' },
+    { min: 65, name: 'Edge', key: 'edge', emoji: '🟩' },
+    { min: 35, name: 'Drift', key: 'drift', emoji: '🟦' },
+    { min: 0, name: 'Herd', key: 'herd', emoji: '⬜' }
+  ];
+  function tierFor(points) { for (var i = 0; i < TIERS.length; i++) if (points >= TIERS[i].min) return TIERS[i]; return TIERS[TIERS.length - 1]; }
+  var MISS = { name: 'Out', key: 'miss', emoji: '⬛' };
+
+  // score one pin. bold: x1.5 when valid, -40 when not
+  function scorePin(b, ev, cr, x, y, bold) {
+    if (x == null || !isValid(b, x, y)) return { valid: false, base: 0, points: bold ? -40 : 0, tier: MISS, pct: 0 };
+    var frac = rarity(cr, x, y);
+    var base = Math.max(1, Math.min(100, Math.round(frac * 100)));
+    var tier = tierFor(base);
+    var i = Math.min(N - 1, Math.floor(x / CELL)), j = Math.min(N - 1, Math.floor(y / CELL));
+    var lab = ev.labels[j * N + i];
+    var pocket = null;
+    if (lab >= 0) pocket = ev.comps[lab];
+    var sliver = pocket && pocket.size < 0.005 * N * N && base >= 95;
+    if (sliver) tier = TIERS[0];
+    return { valid: true, base: base, points: bold ? Math.round(base * 1.5) : base, tier: tier, pct: frac, pocketSize: pocket ? pocket.size : 0 };
+  }
+
+  function makeBoard(seed, level) {
+    for (var attempt = 0; attempt < 3000; attempt++) {
+      var R = rng(seed + '#' + attempt);
+      var b = candidate(R, level);
+      var ev = evaluate(b, level);
+      if (ev.ok) {
+        b.seed = seed; b.level = level; b.attempt = attempt;
+        b.ev = ev; b.cr = crowd(b, ev);
+        b.ruleInfo = b.rules.map(ruleText);
+        return b;
+      }
+    }
+    return null;
+  }
+
+  // launch day is #1
+  var LAUNCH = Date.UTC(2026, 10, 5);
+  function dayNumber(ymd) {
+    var p = ymd.split('-');
+    return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - LAUNCH) / 86400000) + 1;
+  }
+  function dailyBoards(ymd) {
+    var out = [];
+    for (var i = 0; i < 7; i++) out.push(makeBoard('fringe:' + ymd + ':' + i, i));
+    return out;
+  }
+
+  return {
+    N: N, U: U, CELL: CELL, LETTERS: LETTERS, TIERS: TIERS, MISS: MISS,
+    rng: rng, isValid: isValid, scorePin: scorePin, makeBoard: makeBoard,
+    dailyBoards: dailyBoards, dayNumber: dayNumber, tierFor: tierFor
+  };
+})();
+
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var CONFIG = { siteUrl: 'https://max444444444.github.io/fringe/', goatcounter: '/*GOATCOUNTER*/' };
+  if (CONFIG.siteUrl.indexOf('/*') === 0) CONFIG.siteUrl = '';
+  if (CONFIG.goatcounter.indexOf('/*') === 0) CONFIG.goatcounter = '';
+
+  var F = FRINGE, N = F.N, U = F.U, CELL = F.CELL;
+  var BOARDS = 7, SECONDS = 30;
+  var $ = function (id) { return document.getElementById(id); };
+  var css = function (name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); };
+
+  // ---- analytics (only when hosted with a GoatCounter code) ----
+  function track(name) {
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'event-' + name, title: name, event: true }); } catch (e) {}
+  }
+  if (CONFIG.goatcounter) {
+    var gs = document.createElement('script');
+    gs.async = true; gs.src = 'https://gc.zgo.at/count.js';
+    gs.setAttribute('data-goatcounter', 'https://' + CONFIG.goatcounter + '.goatcounter.com/count');
+    document.head.appendChild(gs);
+  }
+
+  // ---- storage ----
+  var KEY = 'fringe:v1';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+  function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+  var store = load();
+  store.days = store.days || {};
+
+  function localYMD(d) {
+    d = d || new Date();
+    var m = d.getMonth() + 1, day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+  }
+  var today = localYMD();
+  var dayNo = F.dayNumber(today);
+
+  var dotColors = function () { return [css('--dotA'), css('--dotB'), css('--dotC'), css('--dotD')]; };
+  var tierColor = function (key) { return css('--t-' + key); };
+
+  $('meta').innerHTML = 'No. <b>' + dayNo + '</b><br>' + new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  $('tierkey').innerHTML = F.TIERS.slice().reverse().map(function (t) {
+    return '<span><i class="sw" style="background:var(--t-' + t.key + ')"></i>' + t.name + '</span>';
+  }).join('') + '<span><i class="sw" style="background:var(--t-miss)"></i>Out</span>';
+
+  // ---- board cache (generated lazily, deterministic by date) ----
+  var cache = {};
+  function boardFor(i) {
+    if (!cache[i]) cache[i] = F.makeBoard('fringe:' + today + ':' + i, i);
+    return cache[i];
+  }
+
+  // ---- canvas ----
+  var cv = $('board'), ctx = cv.getContext('2d');
+  var px = 0, dpr = 1;
+  function sizeCanvas() {
+    var r = cv.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    px = Math.max(200, r.width);
+    // backing store matches the on-screen size exactly, so nothing is resampled
+    var W = Math.round(px * dpr);
+    cv.width = W; cv.height = W;
+  }
+  function S(v) { return v / U * cv.width; }
+
+  // The revealed area is drawn at screen resolution straight from the rules,
+  // with 4x supersampling on boundary pixels, so its edges are exact and smooth.
+  var overlay = document.createElement('canvas'), overlayKey = '';
+  function filledDensity(b) {
+    if (b._fill) return b._fill;
+    var src = b.cr.dens, out = new Float32Array(src);
+    for (var pass = 0; pass < 3; pass++) {
+      var prev = new Float32Array(out);
+      for (var s = 0; s < N * N; s++) {
+        if (prev[s]) continue;
+        var i = s % N, best = 0;
+        if (i > 0 && prev[s - 1] > best) best = prev[s - 1];
+        if (i < N - 1 && prev[s + 1] > best) best = prev[s + 1];
+        if (s >= N && prev[s - N] > best) best = prev[s - N];
+        if (s < N * N - N && prev[s + N] > best) best = prev[s + N];
+        out[s] = best;
+      }
+    }
+    return (b._fill = out);
+  }
+  function buildOverlay(b) {
+    var OW = Math.min(cv.width, 1100);
+    var key = b.seed + ':' + OW + ':' + css('--valid') + ':' + css('--accent');
+    if (key === overlayKey) return;
+    overlayKey = key;
+    overlay.width = OW; overlay.height = OW;
+    var oc = overlay.getContext('2d'), img = oc.createImageData(OW, OW), d = img.data;
+    var v = hexToRgb(css('--valid')), a = hexToRgb(css('--accent'));
+    var dens = filledDensity(b), mx = b.cr.max, k = U / OW, i, j, s;
+    var ins = new Uint8Array(OW * OW);
+    for (j = 0; j < OW; j++) for (i = 0; i < OW; i++) ins[j * OW + i] = F.isValid(b, (i + 0.5) * k, (j + 0.5) * k) ? 1 : 0;
+    for (j = 0; j < OW; j++) for (i = 0; i < OW; i++) {
+      s = j * OW + i;
+      var c = ins[s];
+      var edge = (i > 0 && ins[s - 1] !== c) || (i < OW - 1 && ins[s + 1] !== c) || (j > 0 && ins[s - OW] !== c) || (j < OW - 1 && ins[s + OW] !== c);
+      var cov = c;
+      if (edge) {
+        cov = 0;
+        for (var q = 0; q < 4; q++) if (F.isValid(b, (i + 0.25 + 0.5 * (q & 1)) * k, (j + 0.25 + 0.5 * (q >> 1)) * k)) cov++;
+        cov /= 4;
+      }
+      if (!cov) continue;
+      var o = s * 4;
+      if (edge) {
+        // crisp outline in the area's own colour
+        d[o] = v[0]; d[o + 1] = v[1]; d[o + 2] = v[2]; d[o + 3] = Math.round(240 * cov);
+        continue;
+      }
+      // bilinear sample of the crowd density
+      var gx = (i + 0.5) * k / CELL - 0.5, gy = (j + 0.5) * k / CELL - 0.5;
+      var x0 = Math.max(0, Math.min(N - 2, Math.floor(gx))), y0 = Math.max(0, Math.min(N - 2, Math.floor(gy)));
+      var fx = Math.max(0, Math.min(1, gx - x0)), fy = Math.max(0, Math.min(1, gy - y0));
+      var p = y0 * N + x0;
+      var val = (dens[p] * (1 - fx) + dens[p + 1] * fx) * (1 - fy) + (dens[p + N] * (1 - fx) + dens[p + N + 1] * fx) * fy;
+      var h = Math.pow(Math.min(1, val / mx), 0.55);
+      d[o] = Math.round(v[0] + (a[0] - v[0]) * h);
+      d[o + 1] = Math.round(v[1] + (a[1] - v[1]) * h);
+      d[o + 2] = Math.round(v[2] + (a[2] - v[2]) * h);
+      d[o + 3] = Math.round(95 + 140 * h);
+    }
+    oc.putImageData(img, 0, 0);
+  }
+  function hexToRgb(h) {
+    h = h.replace('#', '');
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    var n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
+  function draw(b, pin, reveal, res) {
+    var W = cv.width;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, W, W);
+    ctx.fillStyle = css('--sheet'); ctx.fillRect(0, 0, W, W);
+    // graph paper
+    for (var g = 0; g <= 100; g += 5) {
+      ctx.strokeStyle = g % 25 === 0 ? css('--grid-major') : css('--grid-minor');
+      ctx.lineWidth = (g % 25 === 0 ? 1.2 : 0.8) * dpr;
+      ctx.beginPath(); ctx.moveTo(S(g), 0); ctx.lineTo(S(g), W); ctx.moveTo(0, S(g)); ctx.lineTo(W, S(g)); ctx.stroke();
+    }
+    if (reveal) {
+      buildOverlay(b);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.globalAlpha = reveal;
+      ctx.drawImage(overlay, 0, 0, W, W);
+      ctx.globalAlpha = 1;
+    }
+    var ink = css('--ink');
+    // line
+    if (b.line) {
+      var l = b.line, dx = l.x2 - l.x1, dy = l.y2 - l.y1;
+      ctx.strokeStyle = ink; ctx.lineWidth = 2 * dpr; ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(S(l.x1 - dx * 2), S(l.y1 - dy * 2)); ctx.lineTo(S(l.x2 + dx * 2), S(l.y2 + dy * 2)); ctx.stroke();
+    }
+    // rings
+    b.rings.forEach(function (r, i) {
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.8 * dpr; ctx.setLineDash([6 * dpr, 5 * dpr]);
+      ctx.beginPath(); ctx.arc(S(r.x), S(r.y), S(r.r), 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+      // label badge at the ring's top-right
+      var angs = [-0.785, -2.356, 0.785, 2.356, -1.571, 1.571, 0, 3.1416], ax = r.x, ay = r.y - r.r;
+      for (var q = 0; q < angs.length; q++) {
+        var tx = r.x + Math.cos(angs[q]) * r.r, ty = r.y + Math.sin(angs[q]) * r.r;
+        if (tx > 5 && tx < 95 && ty > 5 && ty < 95) { ax = tx; ay = ty; break; }
+      }
+      var lx = S(ax), ly = S(ay);
+      ctx.fillStyle = css('--sheet'); ctx.strokeStyle = ink; ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath(); ctx.arc(lx, ly, 9 * dpr, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = ink; ctx.font = '500 ' + (11 * dpr) + 'px ' + css('--font-data');
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(i + 1), lx, ly + 0.5 * dpr);
+    });
+    // frame
+    ctx.setLineDash([]); ctx.strokeStyle = ink; ctx.lineWidth = 3 * dpr; ctx.strokeRect(1.5 * dpr, 1.5 * dpr, W - 3 * dpr, W - 3 * dpr);
+    // dots
+    var cols = dotColors();
+    b.dots.forEach(function (d, i) {
+      ctx.fillStyle = cols[i]; ctx.beginPath(); ctx.arc(S(d.x), S(d.y), 11 * dpr, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = css('--sheet'); ctx.lineWidth = 2 * dpr; ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = '700 ' + (12 * dpr) + 'px ' + css('--font-data');
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(F.LETTERS[i], S(d.x), S(d.y) + 0.5 * dpr);
+    });
+    // pin
+    if (pin) {
+      var x = S(pin.x), y = S(pin.y);
+      var col = res ? (res.valid ? tierColor(res.tier.key) : tierColor('miss')) : css('--accent');
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.2 * dpr;
+      ctx.beginPath(); ctx.moveTo(x - 18 * dpr, y); ctx.lineTo(x - 7 * dpr, y); ctx.moveTo(x + 7 * dpr, y); ctx.lineTo(x + 18 * dpr, y);
+      ctx.moveTo(x, y - 18 * dpr); ctx.lineTo(x, y - 7 * dpr); ctx.moveTo(x, y + 7 * dpr); ctx.lineTo(x, y + 18 * dpr); ctx.stroke();
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 6 * dpr, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = css('--sheet'); ctx.lineWidth = 2 * dpr; ctx.stroke();
+      if (res && !res.valid) {
+        ctx.strokeStyle = css('--accent'); ctx.lineWidth = 2.5 * dpr;
+        ctx.beginPath(); ctx.moveTo(x - 5 * dpr, y - 5 * dpr); ctx.lineTo(x + 5 * dpr, y + 5 * dpr); ctx.moveTo(x + 5 * dpr, y - 5 * dpr); ctx.lineTo(x - 5 * dpr, y + 5 * dpr); ctx.stroke();
+      }
+    }
+  }
+
+  // ---- rules list ----
+  function ruleIcons(info) {
+    var cols = dotColors(), h = '';
+    (info.dots || []).forEach(function (d) { h += '<span class="chipdot" style="background:' + cols[d] + '">' + F.LETTERS[d] + '</span>'; });
+    (info.rings || []).forEach(function (r) { h += '<span class="chipring">' + (r + 1) + '</span>'; });
+    if (info.line) h += '<span class="chipline"></span>';
+    if (/frame/.test(info.text)) h += '<span class="chipframe"></span>';
+    return h;
+  }
+  function renderRules(b) {
+    $('rules').innerHTML = b.ruleInfo.map(function (info) {
+      return '<li><span class="ico">' + ruleIcons(info) + '</span><span>' + info.text + '</span></li>';
+    }).join('');
+  }
+
+  // ---- game state ----
+  var mode = 'daily', idx = 0, pin = null, bold = false, locked = false, timerStart = 0, raf = 0, board = null;
+  var practiceCount = 0;
+  function dayState() { return store.days[today] = store.days[today] || { pins: [] }; }
+
+  function show(id) { ['intro', 'play', 'summary'].forEach(function (s) { $(s).hidden = s !== id; }); }
+
+  function startBoard(i) {
+    idx = i; pin = null; bold = false; locked = false;
+    board = boardFor(i, mode);
+    show('play');
+    window.scrollTo(0, 0);
+    sizeCanvas();
+    $('boardNo').textContent = mode === 'daily' ? 'Board ' + (i + 1) + ' of ' + BOARDS : 'Practice board ' + (practiceCount + 1);
+    $('steps').innerHTML = mode === 'daily' ? Array.from({ length: BOARDS }, function (_, k) { return '<i class="' + (k < i ? 'done' : k === i ? 'now' : '') + '"></i>'; }).join('') : '';
+    renderRules(board);
+    $('boldBtn').setAttribute('aria-pressed', 'false');
+    $('dropBtn').disabled = true;
+    $('dropControls').hidden = false; $('resultBox').hidden = true; $('timer').hidden = false;
+    $('hint').textContent = 'Tap the board to place your pin.';
+    draw(board, null, 0);
+    timerStart = performance.now();
+    cancelAnimationFrame(raf); tick();
+  }
+  function tick() {
+    var left = SECONDS - (performance.now() - timerStart) / 1000;
+    $('timerFill').style.transform = 'scaleX(' + Math.max(0, left / SECONDS) + ')';
+    $('timer').classList.toggle('low', left < 8);
+    if (left <= 0) { drop(true); return; }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function eventPoint(e) {
+    var r = cv.getBoundingClientRect();
+    return { x: Math.max(0, Math.min(U, (e.clientX - r.left) / r.width * U)), y: Math.max(0, Math.min(U, (e.clientY - r.top) / r.height * U)) };
+  }
+  var dragging = false;
+  cv.addEventListener('pointerdown', function (e) { if (locked) return; dragging = true; cv.setPointerCapture(e.pointerId); place(eventPoint(e)); });
+  cv.addEventListener('pointermove', function (e) { if (dragging && !locked) place(eventPoint(e)); });
+  cv.addEventListener('pointerup', function () { dragging = false; });
+  cv.addEventListener('pointercancel', function () { dragging = false; });
+  cv.addEventListener('keydown', function (e) {
+    if (locked) return;
+    var step = e.shiftKey ? 0.5 : 2, p = pin || { x: 50, y: 50 };
+    var map = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    if (map[e.key]) { e.preventDefault(); place({ x: Math.max(0, Math.min(U, p.x + map[e.key][0])), y: Math.max(0, Math.min(U, p.y + map[e.key][1])) }); }
+    if (e.key === 'Enter' && pin) drop(false);
+  });
+  function place(p) {
+    pin = p; $('dropBtn').disabled = false;
+    $('hint').textContent = 'Drag to adjust, then drop. (' + p.x.toFixed(1) + ', ' + p.y.toFixed(1) + ')';
+    draw(board, pin, 0);
+  }
+  $('boldBtn').addEventListener('click', function () {
+    if (locked) return; bold = !bold; this.setAttribute('aria-pressed', String(bold));
+  });
+  $('dropBtn').addEventListener('click', function () { if (pin) drop(false); });
+
+  function drop(timedOut) {
+    if (locked) return; locked = true; cancelAnimationFrame(raf);
+    var res = F.scorePin(board, board.ev, board.cr, pin ? pin.x : null, pin ? pin.y : null, bold);
+    if (mode === 'daily') {
+      var ds = dayState();
+      ds.pins[idx] = pin ? { x: +pin.x.toFixed(2), y: +pin.y.toFixed(2), b: bold ? 1 : 0 } : { x: null, y: null, b: bold ? 1 : 0 };
+      save(store);
+      if (idx === 0) track('start');
+    }
+    reveal(res, timedOut);
+  }
+
+  function reveal(res, timedOut) {
+    buildOverlay(board);
+    $('dropControls').hidden = true; $('timer').hidden = true;
+    $('resultBox').hidden = false;
+    var v = $('verdict');
+    v.classList.toggle('sliver', res.valid && res.tier.key === 'sliver');
+    $('vPts').textContent = (res.points > 0 ? '' : '') + res.points;
+    $('vPts').style.color = res.valid ? tierColor(res.tier.key) : tierColor('miss');
+    $('vTier').innerHTML = '<i class="sw" style="background:' + (res.valid ? tierColor(res.tier.key) : tierColor('miss')) + '"></i>' + (res.valid ? res.tier.name : (pin ? 'Out of bounds' : 'Time ran out'));
+    var why;
+    if (!res.valid) why = pin ? 'At least one rule fails where your pin landed.' : 'No pin was placed in time.';
+    else if (res.tier.key === 'sliver') why = 'A pocket almost nobody will find. Only ' + Math.max(1, Math.round(100 - res.pct * 100)) + '% of players are expected anywhere this quiet.';
+    else why = 'Further out than ' + Math.round(res.pct * 100) + '% of expected pins.';
+    if (bold) why += res.valid ? ' Bold: ×1.5.' : ' Bold: −40.';
+    $('vWhy').textContent = why;
+    $('hint').textContent = '';
+    $('nextBtn').textContent = mode === 'daily' ? (idx < BOARDS - 1 ? 'Next board' : 'See today\'s result') : 'Another practice board';
+    var t0 = performance.now(), reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (function anim() {
+      var k = reduce ? 1 : Math.min(1, (performance.now() - t0) / 650);
+      draw(board, pin, k, res);
+      if (k < 1) requestAnimationFrame(anim);
+    })();
+    $('nextBtn').focus({ preventScroll: true });
+  }
+  $('nextBtn').addEventListener('click', function () {
+    if (mode === 'practice') { practiceCount++; startBoardFrom(newPracticeBoard()); return; }
+    if (idx < BOARDS - 1) startBoard(idx + 1); else finish();
+  });
+  function newPracticeBoard() {
+    return F.makeBoard('practice:' + today + ':' + Date.now() + ':' + Math.random(), 2 + Math.floor(Math.random() * 5));
+  }
+  function startBoardFrom(b) {
+    idx = 0; pin = null; bold = false; locked = false; board = b;
+    show('play'); window.scrollTo(0, 0); sizeCanvas();
+    $('boardNo').textContent = 'Practice board ' + (practiceCount + 1);
+    $('steps').innerHTML = '';
+    renderRules(board);
+    $('boldBtn').setAttribute('aria-pressed', 'false');
+    $('dropBtn').disabled = true;
+    $('dropControls').hidden = false; $('resultBox').hidden = true; $('timer').hidden = false;
+    $('hint').textContent = 'Practice boards are not scored. Tap to place your pin.';
+    draw(board, null, 0);
+    timerStart = performance.now(); cancelAnimationFrame(raf); tick();
+  }
+
+  // ---- summary ----
+  function dailyResults() {
+    var ds = dayState(), out = [];
+    for (var i = 0; i < BOARDS; i++) {
+      var p = ds.pins[i]; if (!p) break;
+      var b = boardFor(i, 'daily');
+      out.push(F.scorePin(b, b.ev, b.cr, p.x, p.y, !!p.b));
+    }
+    return out;
+  }
+  function finish() {
+    mode = 'daily';
+    var res = dailyResults(), total = res.reduce(function (a, r) { return a + r.points; }, 0);
+    var ds = dayState();
+    if (!ds.done) { ds.done = 1; ds.total = total; save(store); track('finish'); }
+    show('summary');
+    $('sumTotal').textContent = total;
+    $('sumLabel').textContent = 'Fringe No. ' + dayNo + ' · today\'s score';
+    $('sumStrip').innerHTML = res.map(function (r) {
+      return '<div style="background:' + (r.valid ? tierColor(r.tier.key) : tierColor('miss')) + '" title="' + (r.valid ? r.tier.name : 'Out') + '">' + r.points + '</div>';
+    }).join('');
+    var share = 'Fringe No. ' + dayNo + ' · ' + total + '\n' + res.map(function (r) { return r.valid ? r.tier.emoji : F.MISS.emoji; }).join('') + (CONFIG.siteUrl ? '\n' + CONFIG.siteUrl : '');
+    $('shareText').textContent = share;
+    // stats
+    var days = Object.keys(store.days).filter(function (k) { return store.days[k].done; }).sort();
+    var best = 0, sum = 0;
+    days.forEach(function (k) { var t = store.days[k].total || 0; best = Math.max(best, t); sum += t; });
+    var streak = 0, d = new Date();
+    while (store.days[localYMD(d)] && store.days[localYMD(d)].done) { streak++; d.setDate(d.getDate() - 1); }
+    $('stats').innerHTML = [['Played', days.length], ['Streak', streak], ['Best', best], ['Average', days.length ? Math.round(sum / days.length) : 0]]
+      .map(function (s) { return '<div><b>' + s[1] + '</b><span>' + s[0] + '</span></div>'; }).join('');
+    $('nextNote').textContent = 'New boards every day at midnight, your time.';
+  }
+  $('shareBtn').addEventListener('click', function () {
+    var text = $('shareText').textContent;
+    track('share');
+    var done = function () { toast('Result copied'); };
+    var fallback = function () {
+      var r = document.createRange(); r.selectNodeContents($('shareText'));
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      toast('Selected. Copy it to share.');
+    };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+  $('practiceBtn').addEventListener('click', function () {
+    practiceCount = 0; mode = 'practice'; startBoardFrom(newPracticeBoard());
+  });
+  var toastT = 0;
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 1800); }
+
+  // ---- boot ----
+  $('startBtn').addEventListener('click', function () {
+    store.seenIntro = 1; save(store);
+    var ds = dayState();
+    mode = 'daily';
+    if (ds.pins.length >= BOARDS) { finish(); return; }
+    startBoard(ds.pins.length);
+  });
+  function boot() {
+    var ds = store.days[today];
+    if (ds && ds.done) { finish(); return; }
+    show('intro');
+    if (ds && ds.pins.length) $('startBtn').textContent = 'Continue with board ' + (ds.pins.length + 1);
+  }
+  window.addEventListener('resize', function () {
+    if ($('play').hidden || !board) return;
+    sizeCanvas();
+    if (locked) draw(board, pin, 1, F.scorePin(board, board.ev, board.cr, pin ? pin.x : null, pin ? pin.y : null, bold));
+    else draw(board, pin, 0);
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && localYMD() !== today && $('play').hidden) location.reload();
+  });
+  boot();
+})();
+</script>
+</body></html>
