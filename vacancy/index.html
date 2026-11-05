@@ -1,0 +1,708 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><meta property="og:title" content="Vacancy"><meta property="og:description" content="Seven shopkeepers, seven empty storefronts, one street. A daily puzzle."></head><body><title>Vacancy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A daily street puzzle. Seven shopkeepers, seven empty storefronts, one street that makes the most of them happy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Figtree:wght@400;600;800&family=DM+Mono:wght@500&display=swap">
+<style>
+/* Layout: a Main Street postcard on top (the board), a shopkeepers' ledger below it, one column on phones. */
+:root {
+  --sky: #d9ecf2;
+  --sky-2: #eef6f8;
+  --paper: #fbfcfa;
+  --ink: #22303a;
+  --muted: #5b6a73;
+  --line: #cfdbe0;
+  --brick: #b5483a;
+  --neon: #e8345a;
+  --neon-off: #c9b8bd;
+  --road: #46525a;
+  --curb: #9aa6ab;
+  --good: #2b8a57;
+  --bad: #c2412f;
+  --gold: #d69a12;
+  --font-display: "Shrikhand", "Cooper Black", Georgia, serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-data: "DM Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sky: #142230; --sky-2: #1a2c3c; --paper: #182530; --ink: #e6edf0; --muted: #9fb0b8; --line: #2c3e4b;
+    --brick: #d06a59; --neon: #ff5a7e; --neon-off: #4f4148; --road: #27323a; --curb: #3e4b53;
+    --good: #4cc286; --bad: #ff7a63; --gold: #f2bd45;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --sky: #142230; --sky-2: #1a2c3c; --paper: #182530; --ink: #e6edf0; --muted: #9fb0b8; --line: #2c3e4b;
+  --brick: #d06a59; --neon: #ff5a7e; --neon-off: #4f4148; --road: #27323a; --curb: #3e4b53;
+  --good: #4cc286; --bad: #ff7a63; --gold: #f2bd45;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--sky); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 48px;
+}
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sign { display: flex; align-items: baseline; gap: 8px; }
+.sign .no { font-family: var(--font-display); font-size: 22px; color: var(--neon-off); transition: color .4s, text-shadow .4s; }
+.sign .no.on { color: var(--neon); text-shadow: 0 0 10px color-mix(in srgb, var(--neon) 60%, transparent); }
+.sign .word { font-family: var(--font-display); font-size: 36px; line-height: 1; color: var(--neon); text-shadow: 0 0 12px color-mix(in srgb, var(--neon) 35%, transparent); letter-spacing: .01em; }
+.meta { font-family: var(--font-data); font-size: 12px; color: var(--muted); text-align: right; }
+.meta b { color: var(--ink); font-weight: 500; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
+.intro { padding: 16px; display: grid; gap: 10px; }
+.intro h1 { font-family: var(--font-body); font-weight: 800; font-size: clamp(22px, 6vw, 28px); line-height: 1.15; margin: 0; text-wrap: balance; }
+.intro p { margin: 0; color: var(--muted); }
+.btn {
+  appearance: none; border: 0; background: var(--brick); color: #fff; font: 800 17px/1 var(--font-body);
+  padding: 15px 18px; border-radius: 12px; min-height: 50px; cursor: pointer; box-shadow: 0 3px 0 color-mix(in srgb, var(--brick) 60%, #000);
+}
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--brick) 60%, #000); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); box-shadow: none; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:focus-visible, .lotbtn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.grow { flex: 1 1 0; min-width: 0; }
+
+.streetbox { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--sky-2); }
+svg#street { display: block; width: 100%; height: auto; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.shopg { transition: transform .32s cubic-bezier(.3,.7,.2,1); cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .shopg { transition: none; } }
+.status { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.status .happy { font-family: var(--font-data); font-size: 14px; }
+.status .happy b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.hint { font-size: 14px; color: var(--muted); margin: 0; min-height: 1.4em; }
+
+.ledger { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ledger li { padding: 10px 12px; display: grid; grid-template-columns: 34px 1fr auto; gap: 4px 10px; align-items: center; }
+.ledger li.sel { outline: 2.5px solid var(--gold); outline-offset: -1px; }
+.ledger .em { font-size: 26px; line-height: 1; grid-row: span 2; text-align: center; }
+.ledger .who { font-weight: 800; min-width: 0; }
+.ledger .who span { font-weight: 400; color: var(--muted); }
+.ledger .mood { font-size: 22px; grid-row: span 2; }
+.wishes { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.wish { display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; padding: 3px 9px; border-radius: 999px; border: 1.5px solid var(--line); }
+.wish.ok { border-color: var(--good); color: var(--good); }
+.wish.no { border-color: color-mix(in srgb, var(--bad) 70%, transparent); color: var(--bad); }
+.wish .pts { font-family: var(--font-data); font-size: 11px; opacity: .8; }
+.quote { grid-column: 2 / 4; font-size: 13.5px; color: var(--muted); margin: 2px 0 0; font-style: italic; }
+
+.result { padding: 16px; display: grid; gap: 12px; }
+.big { font-family: var(--font-display); font-size: clamp(44px, 14vw, 64px); line-height: 1; color: var(--brick); font-variant-numeric: tabular-nums; }
+.big small { font-family: var(--font-body); font-weight: 800; font-size: 20px; color: var(--muted); }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.facts div { background: var(--sky-2); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.facts b { display: block; font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; }
+.facts span { font-size: 12px; color: var(--muted); }
+pre.share { margin: 0; padding: 12px; background: var(--sky-2); border-radius: 10px; font-family: var(--font-data); font-size: 14px; white-space: pre-wrap; user-select: all; }
+.small { font-size: 13px; color: var(--muted); margin: 0; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-size: 14px; z-index: 20; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="sign" aria-label="Vacancy"><span class="no" id="noSign">NO</span><span class="word">Vacancy</span></div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section class="card intro" id="intro">
+    <h1>Seven shopkeepers. Seven empty storefronts. One street.</h1>
+    <p>Every shop owner has a wish or two, like being near the station or nowhere near the bar. Tap two storefronts to swap them, and make as many wishes come true as you can. Most people's first plan misses the best street by a mile.</p>
+    <button class="btn" id="startBtn">Open today's street</button>
+  </section>
+
+  <section id="game" hidden style="display:flex;flex-direction:column;gap:12px">
+    <div class="streetbox"><svg id="street" viewBox="0 0 760 300" role="img" aria-label="Main Street with seven storefronts"></svg></div>
+    <div class="status">
+      <div class="happy">Wishes granted <b id="happyNow">0</b> / <span id="happyMax">0</span></div>
+      <button class="btn" id="openBtn">Open for business</button>
+    </div>
+    <p class="hint" id="hint">Tap a storefront, then tap another to swap them.</p>
+    <ul class="ledger" id="ledger"></ul>
+  </section>
+
+  <section class="card result" id="result" hidden>
+    <div>
+      <div class="small" id="resLabel"></div>
+      <div class="big" id="resBig"></div>
+    </div>
+    <p id="resLine" style="margin:0;font-weight:600"></p>
+    <div class="facts" id="facts"></div>
+    <div class="row">
+      <button class="btn ghost grow" id="bestBtn">Show a best street</button>
+      <button class="btn ghost grow" id="mineBtn" hidden>Show my street</button>
+    </div>
+    <pre class="share" id="shareText"></pre>
+    <div class="row"><button class="btn grow" id="shareBtn">Copy result</button><button class="btn ghost" id="practiceBtn">Practice street</button></div>
+    <p class="small" id="streak"></p>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// Vacancy core: daily street generation, wish checks, exact solver, scoring.
+var VACANCY = (function () {
+  var LOTS = 7;
+
+  // ---- seeded randomness ----
+  function seedHash(str) {
+    var h = 1779033703 ^ str.length;
+    for (var i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+    h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  }
+  function rng(seed) {
+    var a = seedHash(seed);
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function shuffle(R, arr) { var a = arr.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(R() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function pick(R, arr) { return arr[Math.floor(R() * arr.length)]; }
+
+  // ---- the town ----
+  var LANDMARKS = {
+    station:   { emoji: '🚉', name: 'train station' },
+    school:    { emoji: '🏫', name: 'school' },
+    park:      { emoji: '🌳', name: 'park' },
+    apartments:{ emoji: '🏢', name: 'apartments' },
+    clinic:    { emoji: '🏥', name: 'clinic' },
+    hall:      { emoji: '🏛️', name: 'town hall' },
+    parking:   { emoji: '🅿️', name: 'parking lot' },
+    office:    { emoji: '🏬', name: 'office block' }
+  };
+  var TRAITS = {
+    loud: { label: 'loud', emoji: '🔊' },
+    smelly: { label: 'smelly', emoji: '💨' },
+    food: { label: 'food', emoji: '🍽️' },
+    night: { label: 'late-night', emoji: '🌙' },
+    kids: { label: 'kids', emoji: '🧒' }
+  };
+  // Each wish: [kind, target, quote]. kinds: near, far (landmarks), next (shop id or trait), notnext (trait), end, middle.
+  var SHOPS = {
+    coffee: { emoji: '☕', name: 'Coffee bar', traits: ['food'], wishes: [
+      ['near', 'station', 'Commuters are my whole morning rush.'],
+      ['near', 'office', 'Office workers keep my espresso machine busy.'],
+      ['next', 'bakery', 'Pastries next door sell my lattes.'],
+      ['notnext', 'smelly', 'Nothing ruins coffee aroma like a bad neighbor smell.']] },
+    bakery: { emoji: '🥐', name: 'Bakery', traits: ['food'], wishes: [
+      ['near', 'apartments', 'My regulars walk over in slippers.'],
+      ['near', 'school', 'Parents grab a croissant after drop-off.'],
+      ['next', 'coffee', 'Croissants want coffee next door.'],
+      ['end', null, 'The flour truck needs the end lot.']] },
+    bar: { emoji: '🍺', name: 'Bar', traits: ['loud', 'night'], wishes: [
+      ['far', 'school', 'Keep me well away from the school, trust me.'],
+      ['near', 'station', 'Last-train crowd is my best crowd.'],
+      ['end', null, 'An end lot lets the patio spill out.'],
+      ['next', 'food', 'Hungry drinkers stay longer with food next door.']] },
+    daycare: { emoji: '🧸', name: 'Daycare', traits: ['kids'], wishes: [
+      ['notnext', 'loud', 'Nap time. No loud neighbors.'],
+      ['near', 'park', 'We walk to the park twice a day.'],
+      ['notnext', 'night', 'No late-night places next to the kids.'],
+      ['near', 'apartments', 'Parents want us close to home.']] },
+    pharmacy: { emoji: '💊', name: 'Pharmacy', traits: [], wishes: [
+      ['near', 'clinic', 'Prescriptions walk straight over from the clinic.'],
+      ['middle', null, 'Everyone should pass me on their way.'],
+      ['near', 'parking', 'Sick people don\'t want to walk far.']] },
+    gym: { emoji: '🏋️', name: 'Gym', traits: ['loud'], wishes: [
+      ['notnext', 'food', 'Donut smell next door kills motivation.'],
+      ['near', 'apartments', '6 a.m. members live close by.'],
+      ['near', 'park', 'Our run club starts in the park.'],
+      ['near', 'office', 'Lunch-hour workouts pay the rent.']] },
+    laundromat: { emoji: '🧺', name: 'Laundromat', traits: [], wishes: [
+      ['near', 'apartments', 'Nobody carries laundry far.'],
+      ['next', 'coffee', 'Waiting for the dryer goes better with coffee.'],
+      ['next', 'food', 'People grab a bite while the wash runs.'],
+      ['near', 'parking', 'Big loads come by car.']] },
+    books: { emoji: '📚', name: 'Bookshop', traits: [], wishes: [
+      ['notnext', 'loud', 'Readers like it quiet.'],
+      ['next', 'coffee', 'A coffee next door doubles browsing time.'],
+      ['middle', null, 'I want to be in the heart of the street.'],
+      ['near', 'school', 'Students buy half my stock.']] },
+    florist: { emoji: '💐', name: 'Florist', traits: [], wishes: [
+      ['near', 'clinic', 'Get-well bouquets are steady business.'],
+      ['near', 'hall', 'Town hall weddings need flowers.'],
+      ['notnext', 'smelly', 'My roses can\'t compete with that smell.'],
+      ['near', 'station', 'Last-minute apology bouquets, mostly from commuters.']] },
+    fish: { emoji: '🐟', name: 'Fishmonger', traits: ['smelly', 'food'], wishes: [
+      ['end', null, 'The ice truck needs the end lot.'],
+      ['near', 'parking', 'Nobody carries fish far on foot.'],
+      ['near', 'apartments', 'Neighborhood cooks are my customers.']] },
+    pets: { emoji: '🐾', name: 'Pet shop', traits: ['smelly', 'kids'], wishes: [
+      ['near', 'park', 'Dog walkers stop in on their way.'],
+      ['notnext', 'food', 'Food next door makes the dogs go wild.'],
+      ['near', 'apartments', 'Cat people live in apartments.']] },
+    barber: { emoji: '💈', name: 'Barber', traits: [], wishes: [
+      ['near', 'office', 'Lunch-break trims are my bread and butter.'],
+      ['middle', null, 'The pole should be seen from both ends.'],
+      ['next', 'bar', 'Fresh cut, then a drink next door.'],
+      ['near', 'station', 'Walk-ins come off every train.']] },
+    pizza: { emoji: '🍕', name: 'Pizza place', traits: ['food', 'night'], wishes: [
+      ['near', 'school', 'After-school slices are my rush hour.'],
+      ['next', 'bar', 'Late-night slices sell themselves next to a bar.'],
+      ['near', 'station', 'Commuters grab a box on the way home.'],
+      ['end', null, 'Delivery bikes need the end lot.']] },
+    arcade: { emoji: '🕹️', name: 'Arcade', traits: ['loud', 'kids', 'night'], wishes: [
+      ['near', 'school', 'After school, the kids come straight here.'],
+      ['far', 'clinic', 'The clinic keeps complaining about the noise.'],
+      ['next', 'food', 'Gamers get hungry.']] },
+    music: { emoji: '🎹', name: 'Music school', traits: ['loud', 'kids'], wishes: [
+      ['near', 'school', 'Lessons start right after the bell.'],
+      ['notnext', 'night', 'Evening recitals need a calm neighbor.'],
+      ['far', 'clinic', 'Scales all day annoy the clinic.']] },
+    icecream: { emoji: '🍦', name: 'Ice cream', traits: ['food', 'kids'], wishes: [
+      ['near', 'park', 'Cones in the park, all summer.'],
+      ['near', 'school', 'The 3 p.m. line goes round the block.'],
+      ['end', null, 'The line needs room to wrap round the corner.']] },
+    yoga: { emoji: '🧘', name: 'Yoga studio', traits: [], wishes: [
+      ['notnext', 'loud', 'Savasana and a loud neighbor don\'t mix.'],
+      ['notnext', 'smelly', 'Deep breaths need clean air.'],
+      ['near', 'park', 'Sunday classes go out on the grass.']] },
+    hardware: { emoji: '🔨', name: 'Hardware store', traits: ['loud'], wishes: [
+      ['end', null, 'Lumber deliveries need the end lot.'],
+      ['near', 'parking', 'Nobody carries a ladder far.'],
+      ['near', 'apartments', 'Renters need hooks, keys and lightbulbs.']] },
+    bank: { emoji: '🏦', name: 'Bank', traits: [], wishes: [
+      ['middle', null, 'A bank belongs on the middle of Main Street.'],
+      ['near', 'hall', 'The town hall banks with us.'],
+      ['near', 'office', 'Business accounts come from the office block.'],
+      ['notnext', 'night', 'Late-night crowds and ATMs don\'t mix.']] },
+    dentist: { emoji: '🦷', name: 'Dentist', traits: [], wishes: [
+      ['notnext', 'loud', 'Drilling teeth is stressful enough.'],
+      ['near', 'clinic', 'Referrals come over from the clinic.'],
+      ['notnext', 'food', 'A candy-smelling neighbor sends mixed messages.']] },
+    diner: { emoji: '🍳', name: 'Diner', traits: ['food', 'night'], wishes: [
+      ['near', 'station', 'Early trains, early breakfasts.'],
+      ['near', 'parking', 'Truckers need somewhere to park.'],
+      ['end', null, 'The corner booth with windows on two sides.']] }
+  };
+  var NAMES = ['Rosa', 'Dev', 'Marge', 'Theo', 'Priya', 'Gus', 'Lena', 'Omar', 'June', 'Felix', 'Ada', 'Sal', 'Mina', 'Hank', 'Iris', 'Kofi', 'Nell', 'Ravi', 'Bea', 'Otto', 'Lupe', 'Wes', 'Tova', 'Hiro', 'Dot', 'Jonah', 'Esme', 'Abe'];
+
+  var WEIGHT = { near: 2, far: 2, next: 2, notnext: 2, end: 1, middle: 1 };
+
+  function wishLabel(w, day) {
+    switch (w.kind) {
+      case 'near': return 'Near the ' + LANDMARKS[w.target].name;
+      case 'far': return 'Far from the ' + LANDMARKS[w.target].name;
+      case 'next': return SHOPS[w.target] ? 'Next to the ' + SHOPS[w.target].name.toLowerCase() : 'Next to a ' + TRAITS[w.target].label + ' shop';
+      case 'notnext': return 'Not next to anything ' + TRAITS[w.target].label;
+      case 'end': return 'An end lot';
+      case 'middle': return 'One of the middle three lots';
+    }
+    return '';
+  }
+  function wishIcon(w) {
+    switch (w.kind) {
+      case 'near': return LANDMARKS[w.target].emoji;
+      case 'far': return LANDMARKS[w.target].emoji;
+      case 'next': return SHOPS[w.target] ? SHOPS[w.target].emoji : TRAITS[w.target].emoji;
+      case 'notnext': return TRAITS[w.target].emoji;
+      case 'end': return '↔️';
+      case 'middle': return '🎯';
+    }
+    return '';
+  }
+
+  // distance from a lot to a landmark: landmarks sit at an end (-0.5 or 6.5) or across from a lot (0..6)
+  function dist(lot, pos) { return Math.abs(lot - pos); }
+
+  // does wish w of shop s (at lot i) hold in layout L? L[lot] = shop index into day.shops
+  function wishHolds(day, L, i, w) {
+    switch (w.kind) {
+      case 'near': return dist(i, day.landmarkPos[w.target]) <= 1.5;
+      case 'far': return dist(i, day.landmarkPos[w.target]) >= 3;
+      case 'end': return i === 0 || i === LOTS - 1;
+      case 'middle': return i >= 2 && i <= 4;
+      case 'next':
+      case 'notnext':
+        var hit = false;
+        for (var d = -1; d <= 1; d += 2) {
+          var j = i + d; if (j < 0 || j >= LOTS) continue;
+          var nb = day.shops[L[j]];
+          if (SHOPS[w.target] ? nb.id === w.target : nb.traits.indexOf(w.target) >= 0) hit = true;
+        }
+        return w.kind === 'next' ? hit : !hit;
+    }
+    return false;
+  }
+  function scoreLayout(day, L) {
+    var s = 0;
+    for (var i = 0; i < LOTS; i++) {
+      var shop = day.shops[L[i]];
+      for (var k = 0; k < shop.wishes.length; k++) if (wishHolds(day, L, i, shop.wishes[k])) s += WEIGHT[shop.wishes[k].kind];
+    }
+    return s;
+  }
+  function maxScore(day) {
+    var m = 0; day.shops.forEach(function (s) { s.wishes.forEach(function (w) { m += WEIGHT[w.kind]; }); }); return m;
+  }
+
+  // every ordering of 7 shops
+  var PERMS = (function () {
+    var out = [];
+    (function rec(a, used) {
+      if (a.length === LOTS) { out.push(a.slice()); return; }
+      for (var i = 0; i < LOTS; i++) if (!used[i]) { used[i] = 1; a.push(i); rec(a, used); a.pop(); used[i] = 0; }
+    })([], []);
+    return out;
+  })();
+
+  // a naive planner: each shop in turn grabs the free lot that best suits it so far
+  function greedy(day) {
+    var order = day.shops.map(function (s, k) { return k; }).sort(function (a, b) { return day.shops[b].wishes.length - day.shops[a].wishes.length || a - b; });
+    var L = new Array(LOTS).fill(-1);
+    order.forEach(function (k) {
+      var best = -1, bs = -1;
+      for (var i = 0; i < LOTS; i++) {
+        if (L[i] >= 0) continue;
+        L[i] = k;
+        var sc = 0, shop = day.shops[k];
+        shop.wishes.forEach(function (w) {
+          if (w.kind === 'next' || w.kind === 'notnext') {
+            // judge only against neighbours already placed
+            var ok = partialNeighbour(day, L, i, w); if (ok) sc += WEIGHT[w.kind];
+          } else if (wishHolds(day, L, i, w)) sc += WEIGHT[w.kind];
+        });
+        L[i] = -1;
+        if (sc > bs) { bs = sc; best = i; }
+      }
+      L[best] = k;
+    });
+    return L;
+  }
+  function partialNeighbour(day, L, i, w) {
+    var hit = false;
+    for (var d = -1; d <= 1; d += 2) {
+      var j = i + d; if (j < 0 || j >= LOTS || L[j] < 0) continue;
+      var nb = day.shops[L[j]];
+      if (SHOPS[w.target] ? nb.id === w.target : nb.traits.indexOf(w.target) >= 0) hit = true;
+    }
+    return w.kind === 'next' ? hit : !hit;
+  }
+
+  // ---- generator ----
+  function candidate(R) {
+    var ids = shuffle(R, Object.keys(SHOPS)).slice(0, LOTS);
+    var lmKeys = shuffle(R, Object.keys(LANDMARKS)).slice(0, 3);
+    // placements: one or two at the ends, the rest across the street
+    var positions = shuffle(R, [-0.5, 6.5, 1, 2, 3, 4, 5]).slice(0, 3);
+    var landmarkPos = {};
+    lmKeys.forEach(function (k, n) { landmarkPos[k] = positions[n]; });
+    var names = shuffle(R, NAMES);
+    var shops = ids.map(function (id, n) {
+      var def = SHOPS[id];
+      var others = ids.filter(function (o) { return o !== id; });
+      var usable = def.wishes.filter(function (w) {
+        var kind = w[0], t = w[1];
+        if (kind === 'near' || kind === 'far') return landmarkPos[t] !== undefined;
+        if (kind === 'next') return SHOPS[t] ? others.indexOf(t) >= 0 : others.some(function (o) { return SHOPS[o].traits.indexOf(t) >= 0; });
+        if (kind === 'notnext') return others.some(function (o) { return SHOPS[o].traits.indexOf(t) >= 0; });
+        return true;
+      });
+      var count = Math.min(usable.length, R() < 0.35 ? 1 : 2);
+      var chosen = shuffle(R, usable).slice(0, count).map(function (w) { return { kind: w[0], target: w[1], quote: w[2] }; });
+      return { id: id, emoji: def.emoji, name: def.name, traits: def.traits, owner: names[n], wishes: chosen };
+    });
+    return { shops: shops, landmarkPos: landmarkPos, landmarks: lmKeys };
+  }
+
+  function analyse(day) {
+    var scores = new Int16Array(PERMS.length), best = -1, bestCount = 0;
+    for (var p = 0; p < PERMS.length; p++) {
+      var s = scoreLayout(day, PERMS[p]); scores[p] = s;
+      if (s > best) { best = s; bestCount = 1; } else if (s === best) bestCount++;
+    }
+    var sorted = Array.prototype.slice.call(scores).sort(function (a, b) { return a - b; });
+    return { scores: scores, sorted: sorted, best: best, bestCount: bestCount };
+  }
+  function bestLayouts(day) {
+    var out = [];
+    for (var p = 0; p < PERMS.length; p++) if (day.an.scores[p] === day.an.best) out.push(PERMS[p]);
+    return out;
+  }
+
+  function makeDay(ymd) {
+    for (var attempt = 0; attempt < 4000; attempt++) {
+      var R = rng('vacancy:' + ymd + '#' + attempt);
+      var day = candidate(R);
+      if (day.shops.some(function (s) { return !s.wishes.length; })) continue;
+      var total = maxScore(day);
+      if (total < 18) continue;
+      var an = analyse(day);
+      if (an.best < 0.75 * total) continue;          // a good street is reachable
+      if (an.bestCount > 12) continue;               // the best street is genuinely hard to find
+      var g = greedy(day), gs = scoreLayout(day, g);
+      if (gs > 0.82 * an.best) continue;             // the obvious plan falls well short
+      // starting street: a shuffle that scores below the obvious plan
+      var start = null;
+      for (var t = 0; t < 50; t++) {
+        var cand = shuffle(R, [0, 1, 2, 3, 4, 5, 6]);
+        if (scoreLayout(day, cand) < gs) { start = cand; break; }
+      }
+      if (!start) continue;
+      day.ymd = ymd; day.attempt = attempt; day.total = total; day.an = an;
+      day.greedy = g; day.greedyScore = gs; day.start = start;
+      return day;
+    }
+    return null;
+  }
+
+  // fraction of all 5,040 streets that score strictly below s
+  function percentile(day, s) {
+    var lo = 0, hi = day.an.sorted.length;
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (day.an.sorted[mid] < s) lo = mid + 1; else hi = mid; }
+    return lo / day.an.sorted.length;
+  }
+  function betterCount(day, s) {
+    var n = 0; for (var i = 0; i < day.an.scores.length; i++) if (day.an.scores[i] > s) n++; return n;
+  }
+
+  var LAUNCH = Date.UTC(2026, 10, 5);
+  function dayNumber(ymd) { var p = ymd.split('-'); return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - LAUNCH) / 86400000) + 1; }
+
+  return {
+    LOTS: LOTS, LANDMARKS: LANDMARKS, TRAITS: TRAITS, SHOPS: SHOPS, WEIGHT: WEIGHT, PERMS: PERMS,
+    makeDay: makeDay, scoreLayout: scoreLayout, wishHolds: wishHolds, wishLabel: wishLabel, wishIcon: wishIcon,
+    percentile: percentile, betterCount: betterCount, bestLayouts: bestLayouts, dayNumber: dayNumber, rng: rng
+  };
+})();
+
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var CONFIG = { siteUrl: 'https://max444444444.github.io/fringe/vacancy/', goatcounter: '/*GOATCOUNTER*/' };
+  if (CONFIG.siteUrl.indexOf('/*') === 0) CONFIG.siteUrl = '';
+  if (CONFIG.goatcounter.indexOf('/*') === 0) CONFIG.goatcounter = '';
+  var V = VACANCY, LOTS = V.LOTS;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function track(name) { try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'event-' + name, title: name, event: true }); } catch (e) {} }
+  if (CONFIG.goatcounter) {
+    var gs = document.createElement('script'); gs.async = true; gs.src = 'https://gc.zgo.at/count.js';
+    gs.setAttribute('data-goatcounter', 'https://' + CONFIG.goatcounter + '.goatcounter.com/count'); document.head.appendChild(gs);
+  }
+
+  var KEY = 'vacancy:v1';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  var store = load(); store.days = store.days || {};
+
+  function ymdOf(d) { var m = d.getMonth() + 1, x = d.getDate(); return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (x < 10 ? '0' : '') + x; }
+  var today = ymdOf(new Date()), dayNo = V.dayNumber(today);
+  $('meta').innerHTML = 'Street No. <b>' + dayNo + '</b><br>' + new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+  var day = null, layout = null, sel = -1, locked = false, mode = 'daily', moves = 0, showing = 'mine';
+
+  // ---- drawing ----
+  var AWNINGS = ['#c8553d', '#2f7f8f', '#d39a2a', '#6b5ba8', '#3f8a5a', '#c2577d', '#3c6fb0', '#8a6a3c'];
+  var LOT_W = 86, GAP = 6, X0 = 70, ROOF = 92, BASE = 246;
+  function lotX(i) { return X0 + i * (LOT_W + GAP); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function shopHappiness(L, lot) {
+    var shop = day.shops[L[lot]], got = 0;
+    shop.wishes.forEach(function (w) { if (V.wishHolds(day, L, lot, w)) got++; });
+    return { got: got, of: shop.wishes.length };
+  }
+  function face(h) { return h.got === h.of ? '😀' : h.got > 0 ? '😐' : '😟'; }
+
+  function drawStreet() {
+    var svg = $('street'), h = '';
+    // sky, far buildings, sidewalk, road
+    h += '<rect x="0" y="0" width="760" height="300" fill="var(--sky-2)"/>';
+    h += '<rect x="0" y="' + BASE + '" width="760" height="14" fill="var(--curb)"/>';
+    h += '<rect x="0" y="' + (BASE + 14) + '" width="760" height="40" fill="var(--road)"/>';
+    for (var k = 0; k < 12; k++) h += '<rect x="' + (14 + k * 64) + '" y="' + (BASE + 32) + '" width="34" height="4" rx="2" fill="var(--sky-2)" opacity=".55"/>';
+    // landmarks across the street sit in the strip above the roofs; end landmarks sit at the sidewalk ends
+    day.landmarks.forEach(function (key) {
+      var pos = day.landmarkPos[key], lm = V.LANDMARKS[key];
+      if (pos < 0 || pos > LOTS - 1) {
+        var x = pos < 0 ? 34 : 726;
+        h += '<text x="' + x + '" y="' + (BASE - 26) + '" font-size="42" text-anchor="middle">' + lm.emoji + '</text>';
+        h += '<text x="' + x + '" y="' + (BASE - 6) + '" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="DM Mono, monospace">' + esc(lm.name.split(' ').pop()) + '</text>';
+      } else {
+        var cx = lotX(pos) + LOT_W / 2;
+        h += '<rect x="' + (cx - 46) + '" y="6" width="92" height="56" rx="10" fill="var(--paper)" stroke="var(--line)"/>';
+        h += '<text x="' + cx + '" y="40" font-size="28" text-anchor="middle">' + lm.emoji + '</text>';
+        h += '<text x="' + cx + '" y="56" font-size="10.5" text-anchor="middle" fill="var(--muted)" font-family="DM Mono, monospace">' + esc(lm.name) + '</text>';
+        h += '<line x1="' + cx + '" y1="62" x2="' + cx + '" y2="' + (ROOF - 4) + '" stroke="var(--curb)" stroke-dasharray="3 3"/>';
+      }
+    });
+    // lot numbers on the curb
+    for (var i = 0; i < LOTS; i++) h += '<text x="' + (lotX(i) + LOT_W / 2) + '" y="' + (BASE + 11) + '" font-size="10" text-anchor="middle" fill="var(--paper)" font-family="DM Mono, monospace">' + (i + 1) + '</text>';
+    // storefronts, one group per shop, positioned by transform so swaps animate
+    day.shops.forEach(function (shop, s) {
+      var aw = AWNINGS[V.SHOPS[shop.id] ? Object.keys(V.SHOPS).indexOf(shop.id) % AWNINGS.length : s];
+      var g = '<g class="shopg" id="shop' + s + '" data-shop="' + s + '">';
+      g += '<rect x="0" y="' + ROOF + '" width="' + LOT_W + '" height="' + (BASE - ROOF) + '" rx="3" fill="var(--paper)" stroke="var(--line)"/>';
+      g += '<rect x="0" y="' + ROOF + '" width="' + LOT_W + '" height="10" fill="' + aw + '"/>';
+      // striped awning
+      for (var st = 0; st < 6; st++) g += '<path d="M' + (st * LOT_W / 6) + ' ' + (ROOF + 34) + ' h' + (LOT_W / 6) + ' l-3 14 h' + (-(LOT_W / 6) + 6) + ' z" fill="' + (st % 2 ? aw : 'var(--paper)') + '" stroke="' + aw + '" stroke-width="1"/>';
+      g += '<rect x="4" y="' + (ROOF + 14) + '" width="' + (LOT_W - 8) + '" height="20" rx="3" fill="' + aw + '"/>';
+      g += '<text x="' + (LOT_W / 2) + '" y="' + (ROOF + 28) + '" font-size="12.5" text-anchor="middle" fill="#fff" font-family="Figtree, sans-serif" font-weight="800">' + esc(shop.name.length > 13 ? shop.name.split(' ')[0] : shop.name) + '</text>';
+      g += '<text x="' + (LOT_W / 2) + '" y="' + (ROOF + 98) + '" font-size="46" text-anchor="middle">' + shop.emoji + '</text>';
+      g += '<rect x="' + (LOT_W / 2 - 17) + '" y="' + (BASE - 44) + '" width="34" height="44" rx="3" fill="var(--sky)" stroke="var(--line)"/>';
+      g += '<text class="face" x="' + (LOT_W / 2) + '" y="' + (BASE - 14) + '" font-size="24" text-anchor="middle"></text>';
+      g += '<rect class="selbox" x="-3" y="' + (ROOF - 3) + '" width="' + (LOT_W + 6) + '" height="' + (BASE - ROOF + 6) + '" rx="6" fill="none" stroke="var(--gold)" stroke-width="4" opacity="0"/>';
+      g += '</g>';
+      h += g;
+    });
+    svg.innerHTML = h;
+    day.shops.forEach(function (_, s) {
+      var el = $('shop' + s);
+      el.addEventListener('click', function () { tapShop(s); });
+    });
+    place(true);
+  }
+  function place(instant) {
+    for (var lot = 0; lot < LOTS; lot++) {
+      var el = $('shop' + layout[lot]);
+      if (instant) el.style.transition = 'none';
+      el.style.transform = 'translate(' + lotX(lot) + 'px, 0px)';
+      if (instant) { el.getBoundingClientRect(); el.style.transition = ''; }
+      el.querySelector('.face').textContent = face(shopHappiness(layout, lot));
+      el.querySelector('.selbox').setAttribute('opacity', layout[lot] === sel ? 1 : 0);
+    }
+    var now = V.scoreLayout(day, layout);
+    $('happyNow').textContent = now;
+    renderLedger();
+  }
+
+  function tapShop(s) {
+    if (locked) return;
+    if (sel < 0) { sel = s; $('hint').textContent = 'Now tap the storefront to swap with.'; }
+    else if (sel === s) { sel = -1; $('hint').textContent = 'Tap a storefront, then tap another to swap them.'; }
+    else {
+      var a = layout.indexOf(sel), b = layout.indexOf(s);
+      layout[a] = s; layout[b] = sel; sel = -1; moves++;
+      $('hint').textContent = 'Swapped. Keep going, or open for business when you\'re happy.';
+      saveProgress();
+    }
+    place(false);
+  }
+
+  function renderLedger() {
+    var rows = [];
+    for (var lot = 0; lot < LOTS; lot++) {
+      var s = layout[lot], shop = day.shops[s], hpy = shopHappiness(layout, lot);
+      var chips = shop.wishes.map(function (w) {
+        var ok = V.wishHolds(day, layout, lot, w);
+        return '<span class="wish ' + (ok ? 'ok' : 'no') + '">' + (ok ? '✓' : '✗') + ' ' + V.wishIcon(w) + ' ' + esc(V.wishLabel(w)) + ' <span class="pts">+' + V.WEIGHT[w.kind] + '</span></span>';
+      }).join('');
+      var quote = shop.wishes.map(function (w) { return w.quote; }).join(' ');
+      rows.push('<li class="card' + (s === sel ? ' sel' : '') + '" data-shop="' + s + '"><span class="em">' + shop.emoji + '</span>' +
+        '<span class="who">' + esc(shop.name) + ' <span>· ' + esc(shop.owner) + ', lot ' + (lot + 1) + '</span></span>' +
+        '<span class="mood">' + face(hpy) + '</span><span class="wishes">' + chips + '</span>' +
+        '<p class="quote">"' + esc(quote) + '"</p></li>');
+    }
+    $('ledger').innerHTML = rows.join('');
+    Array.prototype.forEach.call($('ledger').children, function (li) {
+      li.addEventListener('click', function () { tapShop(+li.getAttribute('data-shop')); });
+    });
+  }
+
+  // ---- flow ----
+  function saveProgress() {
+    if (mode !== 'daily') return;
+    var ds = store.days[today] = store.days[today] || {};
+    ds.layout = layout.slice(); ds.moves = moves; save();
+  }
+  function startDaily() {
+    mode = 'daily';
+    day = V.makeDay(today);
+    var ds = store.days[today];
+    layout = ds && ds.layout ? ds.layout.slice() : day.start.slice();
+    moves = ds && ds.moves ? ds.moves : 0;
+    begin();
+    if (ds && ds.done) finish(true);
+  }
+  function begin() {
+    locked = false; sel = -1; showing = 'mine';
+    $('intro').hidden = true; $('game').hidden = false; $('result').hidden = true;
+    $('openBtn').hidden = false; $('noSign').classList.remove('on');
+    $('happyMax').textContent = day.total;
+    $('hint').textContent = 'Tap a storefront, then tap another to swap them.';
+    drawStreet();
+  }
+  $('startBtn').addEventListener('click', function () { track('start'); startDaily(); });
+  $('openBtn').addEventListener('click', function () { finish(false); });
+
+  function finish(restoring) {
+    locked = true; sel = -1;
+    var mine = V.scoreLayout(day, layout), best = day.an.best;
+    if (mode === 'daily' && !restoring) {
+      var ds = store.days[today] = store.days[today] || {};
+      ds.layout = layout.slice(); ds.moves = moves; ds.done = 1; ds.score = mine; ds.best = best; save(); track('finish');
+    }
+    place(false);
+    $('openBtn').hidden = true;
+    $('hint').textContent = mine === best ? 'A best possible street. The shopkeepers are thrilled.' : 'Open for business.';
+    var perfect = mine === best;
+    $('noSign').classList.toggle('on', perfect);
+    $('result').hidden = false;
+    $('resLabel').textContent = mode === 'daily' ? 'Street No. ' + dayNo + ' · wishes granted' : 'Practice street · wishes granted';
+    $('resBig').innerHTML = mine + ' <small>/ ' + day.total + '</small>';
+    var pct = V.percentile(day, mine), better = V.betterCount(day, mine);
+    var line;
+    if (perfect) line = 'No vacancy. That\'s the best street possible; only ' + day.an.bestCount + ' of 5,040 arrangements score this well.';
+    else line = 'Better than ' + Math.round(pct * 100) + '% of all 5,040 possible streets. The best possible is ' + best + '.';
+    $('resLine').textContent = line;
+    $('facts').innerHTML = [['Best possible', best], ['The obvious plan', day.greedyScore], ['Swaps', moves]]
+      .map(function (f) { return '<div><b>' + f[1] + '</b><span>' + f[0] + '</span></div>'; }).join('');
+    var shops = layout.map(function (s) { return day.shops[s].emoji; }).join('');
+    var faces = layout.map(function (s, lot) { return face(shopHappiness(layout, lot)); }).join('');
+    var tag = perfect ? '🏆 Perfect street' : (pct >= 0.5 ? 'Top ' + Math.max(1, Math.round((1 - pct) * 100)) + '%' : 'Better than ' + Math.round(pct * 100) + '%') + ' of 5,040 streets' + (mine > day.greedyScore ? ' · beat the obvious plan' : '');
+    $('shareText').textContent = (mode === 'daily' ? 'Vacancy No. ' + dayNo : 'Vacancy practice') + ' · ' + mine + '/' + day.total + '\n' + shops + '\n' + faces + '\n' + tag + (CONFIG.siteUrl ? '\n' + CONFIG.siteUrl : '');
+    $('shareBtn').hidden = mode !== 'daily';
+    $('bestBtn').hidden = false; $('mineBtn').hidden = true;
+    renderStreak();
+    if (!restoring) $('result').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+  var myLayout = null;
+  $('bestBtn').addEventListener('click', function () {
+    myLayout = layout.slice();
+    layout = V.bestLayouts(day)[0].slice();
+    place(false); $('bestBtn').hidden = true; $('mineBtn').hidden = false;
+    $('hint').textContent = 'One of the best possible streets (' + day.an.best + ' wishes).';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  $('mineBtn').addEventListener('click', function () {
+    layout = myLayout.slice(); place(false); $('bestBtn').hidden = false; $('mineBtn').hidden = true;
+    $('hint').textContent = 'Your street.';
+  });
+  function renderStreak() {
+    var done = Object.keys(store.days).filter(function (k) { return store.days[k].done; });
+    var perfects = done.filter(function (k) { return store.days[k].score === store.days[k].best; }).length;
+    var streak = 0, d = new Date();
+    while (store.days[ymdOf(d)] && store.days[ymdOf(d)].done) { streak++; d.setDate(d.getDate() - 1); }
+    $('streak').textContent = 'Streets opened: ' + done.length + ' · perfect streets: ' + perfects + ' · streak: ' + streak + ' day' + (streak === 1 ? '' : 's') + '. A new street opens at midnight, your time.';
+  }
+  $('shareBtn').addEventListener('click', function () {
+    var text = $('shareText').textContent; track('share');
+    var fallback = function () { var r = document.createRange(); r.selectNodeContents($('shareText')); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); toast('Selected. Copy it to share.'); };
+    try { navigator.clipboard.writeText(text).then(function () { toast('Result copied'); }, fallback); } catch (e) { fallback(); }
+  });
+  $('practiceBtn').addEventListener('click', function () {
+    mode = 'practice'; moves = 0;
+    day = V.makeDay('practice-' + Date.now() + '-' + Math.random());
+    layout = day.start.slice(); begin(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  var tt = 0;
+  function toast(m) { var t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(function () { t.hidden = true; }, 1800); }
+
+  // returning players go straight to their street
+  if (store.days[today]) startDaily();
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ymdOf(new Date()) !== today) location.reload(); });
+})();
+</script>
+</body></html>
