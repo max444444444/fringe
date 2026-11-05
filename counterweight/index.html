@@ -48,6 +48,18 @@ svg#scale { display: block; width: 100%; height: auto; }
 .controls .hint { font-size: 14px; color: var(--muted); }
 .btn { appearance: none; border: 0; background: var(--ink); color: var(--enamel); font: 700 16px/1 var(--font-body); padding: 14px 20px; min-height: 48px; cursor: pointer; border-radius: 3px; }
 .btn:disabled { opacity: .4; cursor: default; }
+.adder label { display: block; font-weight: 600; margin-bottom: 6px; }
+.addrow { display: flex; gap: 8px; }
+.addrow input { flex: 1; min-width: 0; font: inherit; font-size: 17px; padding: 12px; border: 1.5px solid var(--ink); background: var(--enamel); color: var(--ink); border-radius: 3px; }
+.addrow input:focus-visible { outline: 3px solid var(--needle); outline-offset: 1px; }
+.btn.alt { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+.msg { min-height: 1.3em; margin: 6px 0 0; font-size: 14px; color: var(--needle); }
+.msg button { appearance: none; border: 0; background: none; color: var(--ink); text-decoration: underline; font: inherit; cursor: pointer; padding: 0 2px; }
+.pan { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.pan li { background: var(--enamel); border: 1.5px solid var(--ink); border-radius: 3px 14px 14px 3px; padding: 8px 10px 8px 12px; display: flex; gap: 8px; align-items: center; font-weight: 600; }
+.pan li .kg { font-weight: 400; color: var(--muted); font-size: 13.5px; }
+.pan li button { appearance: none; border: 0; background: none; color: var(--muted); font: 700 16px/1 var(--font-body); cursor: pointer; padding: 2px 4px; }
+.pan li button:focus-visible { outline: 2px solid var(--needle); }
 .note { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
 /* weigh ticket */
 .ticket { background: var(--ticket); color: #1f2a24; max-width: 380px; padding: 18px 18px 22px; font-size: 15px; position: relative;
@@ -71,8 +83,8 @@ svg#scale { display: block; width: 100%; height: auto; }
   </header>
 
   <section id="intro" style="display:flex;flex-direction:column;gap:12px">
-    <p class="lede">Something mystery-heavy sits on the left pan. Put up to three things from the shelf on the right pan to balance it. No numbers until you weigh.</p>
-    <p class="lede">The closer you get, the more you score. Five rounds, from light to heavy.</p>
+    <p class="lede">Something sits on the left pan. Type up to three objects, any objects, to balance it on the right. No numbers until you weigh.</p>
+    <p class="lede">The closer you get, the more you score. Five rounds, from light to heavy, and every object can only be used once a day.</p>
     <div><button class="btn" id="startBtn">Open the shop</button></div>
   </section>
 
@@ -80,13 +92,18 @@ svg#scale { display: block; width: 100%; height: auto; }
     <div class="round"><h2 id="loadName"></h2><span class="rno" id="rno"></span></div>
     <svg id="scale" viewBox="0 0 600 300" role="img" aria-label="A balance scale"></svg>
     <p class="reading" id="reading"></p>
-    <ul class="shelf" id="shelf"></ul>
-    <div class="controls" id="controls"><span class="hint" id="hint">Pick up to three.</span><button class="btn" id="weighBtn" disabled>Weigh it</button></div>
+    <form class="adder" id="adder" autocomplete="off">
+      <label for="thing">Type any object to put on the right pan</label>
+      <div class="addrow"><input id="thing" type="text" maxlength="40" placeholder="a gallon of milk, a cat, a brick..." enterkeyhint="done"><button class="btn alt" id="addBtn" type="submit">Add</button></div>
+      <p class="msg" id="msg"></p>
+    </form>
+    <ul class="pan" id="pan"></ul>
+    <div class="controls" id="controls"><span class="hint" id="hint">Up to three things. Each object can only be used once a day.</span><button class="btn" id="weighBtn" disabled>Weigh it</button></div>
     <div id="after" hidden>
       <p class="note" id="facts"></p>
-      <p class="note" id="bestLine"></p>
       <div style="margin-top:12px"><button class="btn" id="nextBtn">Next round</button></div>
     </div>
+    <p class="note" id="used"></p>
   </section>
 
   <section class="ticket" id="summary" hidden>
@@ -101,90 +118,122 @@ svg#scale { display: block; width: 100%; height: auto; }
 <div class="toast" id="toast" hidden></div>
 
 <script>
-// Counterweight core. Masses are typical or regulation values in kg; the page says "about" for anything that varies.
+// Counterweight catalogue: typical weights in kg. "name/alias/alias:kg" separated by semicolons.
+var CW_CATALOG = "apple:0.18;banana:0.12;orange:0.2;lemon:0.1;lime:0.07;grape:0.005;bunch of grapes:0.5;strawberry:0.015;watermelon:7;cantaloupe/melon:1.5;pineapple:1.5;avocado:0.2;potato:0.2;sweet potato:0.25;onion:0.15;garlic/garlic bulb:0.05;carrot:0.07;tomato:0.12;cucumber:0.3;lettuce/head of lettuce:0.5;cabbage:1;broccoli:0.4;pumpkin:5;coconut:0.7;mango:0.3;pear:0.18;peach:0.15;plum:0.07;cherry:0.008;kiwi:0.075;grapefruit:0.3;corn/ear of corn:0.25;eggplant/aubergine:0.45;bell pepper/pepper:0.17;" +
+  "egg:0.057;dozen eggs/carton of eggs:0.7;ostrich egg:1.4;loaf of bread/bread:0.7;slice of bread:0.03;bagel:0.1;croissant:0.06;donut/doughnut:0.07;muffin:0.1;pizza/large pizza:1;slice of pizza/pizza slice:0.15;hamburger/burger:0.25;hot dog:0.1;burrito:0.4;taco:0.1;sandwich:0.25;cookie:0.03;cupcake:0.07;cake/birthday cake:1.5;pie:1;pancake:0.08;waffle:0.08;pretzel:0.06;" +
+  "stick of butter/butter:0.113;block of cheese/cheese:0.45;wheel of cheese:10;gallon of milk/milk jug:3.9;quart of milk:0.97;carton of milk:1;carton of orange juice/orange juice:1.9;can of soda/soda can/coke can:0.37;2 liter bottle/2 litre bottle/two liter soda/2 liter soda:2.1;water bottle/bottle of water:0.52;wine bottle/bottle of wine:1.25;beer can/can of beer:0.37;beer bottle/bottle of beer:0.55;six pack/6 pack of beer:2.3;12 pack of soda/twelve pack:4.6;case of water:12;keg:73;" +
+  "jar of peanut butter/peanut butter:0.5;jar of jam/jam:0.45;bag of sugar/sugar:1.8;bag of flour/flour:2.27;bag of rice/rice:1;box of cereal/cereal:0.45;can of soup/soup can:0.4;can of beans:0.45;can of tuna:0.17;bag of chips/chips:0.28;chocolate bar:0.045;stick of gum/gum:0.003;marshmallow:0.007;jar of honey/honey:0.5;ketchup bottle/ketchup:0.6;jar of mayo/mayonnaise:0.9;bottle of olive oil/olive oil:0.9;frozen pizza:0.5;tub of ice cream/ice cream:0.9;ice cream cone:0.15;bag of frozen peas/frozen peas:0.45;turkey/thanksgiving turkey:7;whole chicken:2;rotisserie chicken:1.2;steak:0.3;fish fillet:0.2;lobster:0.7;pack of bacon/bacon:0.45;sausage:0.07;block of tofu/tofu:0.4;bag of coffee/coffee beans:0.34;tea bag:0.002;" +
+  "plate:0.5;bowl:0.3;fork:0.04;spoon:0.03;knife:0.08;chopsticks/chopstick:0.02;cast iron skillet/cast iron pan:3.5;frying pan/pan:1.2;saucepan/pot:1;stock pot:2.5;kettle:1.2;toaster:1.5;blender:3;microwave:15;coffee maker/coffee machine:2.5;cutting board/chopping board:1;rolling pin:0.5;colander:0.4;baking sheet/baking tray:0.6;mixing bowl:0.5;wine glass:0.2;drinking glass/glass/cup:0.25;mug/coffee mug:0.35;mason jar/jar:0.3;tupperware/food container:0.15;oven mitt:0.1;dish towel/tea towel:0.1;sponge:0.02;dish soap:0.8;paper towel roll/paper towels:0.2;roll of foil/aluminum foil/tin foil:0.5;refrigerator/fridge:90;mini fridge:18;dishwasher:40;stove/oven:60;rice cooker:3;air fryer:5;stand mixer:10;instant pot/pressure cooker:5.5;waffle iron:2.5;ice cube:0.02;bag of ice:3.6;lunchbox/lunch box:0.5;thermos:0.5;" +
+  "toilet paper/roll of toilet paper:0.2;pillow:0.7;blanket:1.5;duvet/comforter:2;bath towel/towel:0.6;mattress:30;chair:6;office chair:15;folding chair:4;stool:3;couch/sofa:50;armchair:25;coffee table:15;dining table/table:35;desk:30;bookshelf/bookcase:25;lamp:2;light bulb/lightbulb:0.05;candle:0.3;picture frame:0.5;mirror:5;wall clock/clock:0.5;alarm clock:0.3;vacuum cleaner/vacuum:6;broom:0.6;mop:1;bucket:0.5;bucket of water:10;iron:1.5;ironing board:5;laundry basket:1;hanger/coat hanger:0.05;umbrella:0.4;door:30;doormat:2;rug:5;curtain:1;houseplant/plant:2;potted plant:3;vase:0.8;trash can/bin:3;full trash bag/trash bag:5;box of tissues/tissues:0.2;roll of tape/tape:0.1;smoke detector:0.3;fire extinguisher:4;extension cord:0.5;suitcase:4;full suitcase:20;cardboard box/box:0.5;shoebox/shoe box:0.4;" +
+  "aa battery/battery:0.023;aaa battery:0.011;9 volt battery:0.045;d battery:0.14;car battery:18;smartphone/phone/iphone/cell phone:0.2;tablet/ipad:0.5;laptop/macbook:1.6;desktop computer/computer/pc:9;monitor:5;keyboard:0.7;computer mouse/mouse pad:0.1;tv/television:18;remote/remote control/tv remote:0.15;headphones:0.25;earbuds/airpods:0.005;smartwatch/apple watch:0.04;game console/playstation/xbox:3.5;nintendo switch:0.4;controller/game controller:0.25;camera:0.7;printer:7;router:0.4;speaker/bluetooth speaker:1;phone charger/charger:0.1;power bank:0.3;usb stick/flash drive:0.01;calculator:0.1;kindle/e-reader:0.2;" +
+  "pencil:0.006;pen:0.01;marker:0.015;eraser:0.02;crayon:0.005;ruler:0.03;stapler:0.3;paperclip/paper clip:0.001;sheet of paper/piece of paper/paper:0.0045;notebook:0.3;textbook:1.5;paperback/paperback book:0.3;hardcover book/book:0.7;dictionary:1.5;ream of paper:2.3;envelope:0.005;sticky notes/post it:0.05;binder:0.5;backpack:0.7;full backpack:7;scissors:0.1;glue stick:0.02;folder:0.05;magazine:0.2;newspaper:0.25;phone book:1.5;globe:1.5;whiteboard:5;" +
+  "t-shirt/tshirt/shirt:0.15;jeans/pair of jeans:0.6;sock:0.03;pair of socks/socks:0.06;shoe:0.4;pair of shoes/shoes:0.8;sneaker:0.35;pair of sneakers/sneakers:0.7;boot:0.8;pair of boots/boots:1.6;hat:0.1;baseball cap/cap:0.1;scarf:0.15;gloves/pair of gloves:0.1;jacket:1;winter coat/coat:2;hoodie:0.6;sweater:0.5;dress:0.3;belt:0.2;tie:0.05;sunglasses:0.03;glasses:0.03;wallet:0.1;purse/handbag:0.5;watch/wristwatch:0.1;ring:0.005;necklace:0.02;flip flops:0.2;" +
+  "toothbrush:0.02;toothpaste:0.15;shampoo/bottle of shampoo:0.5;bar of soap/soap:0.1;hairbrush:0.1;comb:0.02;hair dryer:0.6;razor:0.05;deodorant:0.1;toilet:40;bathtub:100;sunscreen:0.25;" +
+  "soccer ball/football ball:0.43;basketball:0.62;american football/nfl football/football:0.41;baseball:0.145;softball:0.19;tennis ball:0.058;golf ball:0.046;volleyball:0.27;bowling ball:6.4;bowling pin:1.6;baseball bat/bat:0.9;tennis racket/racket:0.3;golf club:0.4;hockey puck/puck:0.17;hockey stick:0.6;frisbee:0.175;skateboard:3.5;bicycle/bike:12;scooter:5;helmet:0.4;yoga mat:1.5;dumbbell:4.5;kettlebell:16;barbell/olympic barbell:20;weight plate:20;jump rope:0.3;shot put:7.26;rubber duck:0.05;teddy bear:0.3;lego/lego brick:0.0025;rubiks cube/rubik's cube:0.1;deck of cards/cards:0.1;playing card:0.002;die/dice:0.005;chess set:1;marble:0.005;kite:0.3;balloon:0.003;beach ball:0.2;surfboard:3;snowboard:3.5;ski:2;sled:3;trophy:1;guitar:2.5;violin:0.5;keyboard piano/electric piano:12;piano:250;drum:3;trumpet:1.1;" +
+  "hammer:0.6;screwdriver:0.15;wrench:0.3;pliers:0.3;drill:1.5;saw:0.8;tape measure:0.3;nail:0.005;screw:0.003;brick:2.3;cinder block:16;bag of cement/cement bag:40;bag of soil/bag of dirt:18;bag of sand/sandbag:18;flower pot:1;garden hose/hose:4;shovel:2;rake:1.5;wheelbarrow:15;lawn mower:30;ladder:8;toolbox:5;gallon of paint/paint can:5;propane tank:17;gas can:16;tire/tyre/car tire:10;car:1500;truck/pickup truck:2300;motorcycle:200;" +
+  "cat/house cat/kitten:4.5;dog:20;labrador/lab:30;golden retriever:30;german shepherd:35;chihuahua:2;pug:7;corgi:12;hamster:0.1;guinea pig:1;rabbit/bunny:2;goldfish/fish:0.05;parrot:0.4;chicken:2.5;duck:1.2;goose:4;pig:100;sheep:70;goat:50;cow:700;horse:500;pony:200;elephant:5000;giraffe:1000;lion:190;tiger:220;bear:300;panda:100;penguin:20;ostrich:110;kangaroo:60;crocodile/alligator:400;frog:0.025;mouse:0.02;rat:0.3;squirrel:0.5;pigeon:0.35;owl:1.5;eagle:5;hummingbird:0.004;bee:0.0001;spider:0.001;butterfly:0.0005;dolphin:200;shark:1000;octopus:15;turtle:0.5;tortoise:50;" +
+  "newborn baby/baby/newborn:3.4;toddler:12;child/kid:25;teenager:60;adult/person:75;" +
+  "rock:0.5;stone:1;pebble:0.02;log:15;stick:0.2;leaf:0.002;pinecone:0.05;snowball:0.3;gold bar:12.4;quarter:0.00567;penny:0.0025;dime:0.00227;nickel:0.005;coin:0.006;dollar bill/bill/banknote:0.001;credit card:0.005;key:0.01;keys/set of keys/keychain:0.06;padlock/lock:0.2;flashlight/torch:0.3;match:0.0001;matchbox:0.01;feather:0.0001";
+
+var CW_LOADS = [
+  ['🥚', 'An ostrich egg', 1.4, 'Typical ostrich eggs weigh about 1.4 kg'],
+  ['🥤', 'A 2-litre bottle of soda', 2.1, 'Two litres of soda plus the bottle'],
+  ['👶', 'A newborn baby', 3.4, 'The average full-term newborn is about 3.4 kg'],
+  ['🥤', 'A 12-pack of soda cans', 4.6, 'Twelve 355 ml cans at about 380 g each, plus the box'],
+  ['🎳', 'A bowling ball', 6.4, 'A common 14 lb ball'],
+  ['⚫', 'A men\'s shot put', 7.26, 'Regulation weight is exactly 7.26 kg'],
+  ['🥇', 'A gold bar', 12.4, 'A standard 400 troy-ounce bank bar'],
+  ['🍷', 'A case of 12 wine bottles', 15.5, 'Twelve full 750 ml bottles plus the box'],
+  ['🔥', 'A full 20 lb propane tank', 17, 'About 8 kg of tank plus 9 kg of propane'],
+  ['🏋️', 'An Olympic barbell', 20, 'A men\'s competition bar is exactly 20 kg'],
+  ['🧳', 'A checked bag at the 50 lb limit', 22.7, '50 lb is 22.7 kg'],
+  ['🧊', 'A cubic foot of water', 28.3, 'One cubic foot holds 28.3 litres'],
+  ['🐕', 'A Labrador retriever', 30, 'Adult Labs are typically 25 to 36 kg']
+];
+
+// Counterweight core: catalogue lookup for typed objects, daily loads, scoring.
 var CW = (function () {
   function seedHash(str) { var h = 1779033703 ^ str.length; for (var i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; }
   function rng(seed) { var a = seedHash(seed); return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   function shuffle(R, a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(R() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   var LAUNCH = Date.UTC(2026, 10, 5);
   function dayNumber(ymd) { var p = ymd.split('-'); return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - LAUNCH) / 86400000) + 1; }
+  var ROUNDS = 5, MAX_PICK = 3;
 
-  // [emoji, name, kg, note]
-  var ITEMS = [
-    ['🪙', 'US penny', 0.0025], ['🔋', 'AA battery', 0.023], ['⛳', 'Golf ball', 0.046], ['🎾', 'Tennis ball', 0.058], ['🥚', 'Large egg', 0.057],
-    ['🧈', 'Stick of butter', 0.113], ['⚾', 'Baseball', 0.145], ['📱', 'Smartphone', 0.2], ['🥫', 'Can of soup', 0.4], ['⚽', 'Soccer ball', 0.43],
-    ['🏀', 'Basketball', 0.62], ['💧', 'Litre of water', 1.0], ['🍷', 'Full wine bottle', 1.25], ['💻', 'Laptop', 1.6], ['🥤', '2-litre soda', 2.1],
-    ['🌾', '5 lb bag of flour', 2.27], ['🧱', 'House brick', 2.3], ['🥛', 'Gallon of milk', 3.9], ['🐈', 'House cat', 4.5], ['🎳', 'Bowling ball', 6.4],
-    ['🛞', 'Car tyre', 10], ['🍚', '25 lb bag of rice', 11.3], ['🏋️', '16 kg kettlebell', 16], ['🐕', '40 lb bag of dog food', 18.1], ['🚰', 'Full 5-gallon water jug', 19.5]
-  ];
-  var LOADS = [
-    ['🥚', 'An ostrich egg', 1.4, 'Typical ostrich eggs weigh about 1.4 kg'],
-    ['🥤', 'A 2-litre bottle of soda', 2.1, 'Two litres of soda plus the bottle'],
-    ['👶', 'A newborn baby', 3.4, 'The average full-term newborn is about 3.4 kg'],
-    ['🎳', 'A bowling ball', 6.4, 'A common 14 lb ball'],
-    ['⚫', 'A men\'s shot put', 7.26, 'Regulation weight is exactly 7.26 kg'],
-    ['🥇', 'A gold bar', 12.4, 'A standard 400 troy-ounce bank bar'],
-    ['🔥', 'A full 20 lb propane tank', 17, 'About 8 kg of tank plus 9 kg of propane'],
-    ['🏋️', 'An Olympic barbell', 20, 'A men\'s competition bar is exactly 20 kg'],
-    ['🧳', 'A checked bag at the 50 lb limit', 22.7, '50 lb is 22.7 kg'],
-    ['🧊', 'A cubic foot of water', 28.3, 'One cubic foot holds 28.3 litres'],
-    ['🐕', 'A Labrador retriever', 30, 'Adult Labs are typically 25 to 36 kg'],
-    ['🥤', 'A 12-pack of soda cans', 4.6, 'Twelve 355 ml cans at about 380 g each, plus the box'],
-    ['🍷', 'A case of 12 wine bottles', 15.5, 'Twelve full 750 ml bottles plus the box']
-  ];
-  var ROUNDS = 5, SHELF = 8, MAX_PICK = 3;
+  // ---- catalogue ----
+  function singular(w) {
+    if (w.length <= 3 || /ss$/.test(w)) return w;
+    if (/ies$/.test(w)) return w.slice(0, -3) + 'y';
+    if (/(ches|shes|xes|sses|oes)$/.test(w)) return w.slice(0, -2);
+    if (/s$/.test(w)) return w.slice(0, -1);
+    return w;
+  }
+  var FILLER = { a: 1, an: 1, the: 1, my: 1, some: 1, your: 1, our: 1, his: 1, her: 1, their: 1, old: 1, new: 1, big: 1, small: 1, little: 1, large: 1, huge: 1, tiny: 1, full: 0, empty: 1 };
+  function norm(s) {
+    s = String(s).toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9 \-]/g, ' ').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+    var words = s.split(' ').filter(function (w) { return w && !FILLER[w]; }).map(singular);
+    return words.join(' ');
+  }
+  var INDEX = {}, ENTRIES = [];
+  CW_CATALOG.split(';').forEach(function (rec) {
+    if (!rec) return;
+    var k = rec.lastIndexOf(':'), names = rec.slice(0, k).split('/'), kg = parseFloat(rec.slice(k + 1));
+    var entry = { name: names[0], kg: kg, id: norm(names[0]) };
+    ENTRIES.push(entry);
+    names.forEach(function (n) { var key = norm(n); if (key && !INDEX[key]) INDEX[key] = entry; });
+  });
+  var KEYS = Object.keys(INDEX);
+  function lev(a, b) {
+    if (Math.abs(a.length - b.length) > 3) return 9;
+    var prev = [], cur = [], i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      cur = [i];
+      for (j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  var MULTI = /^(\d+|two|three|four|five|six|seven|eight|nine|ten|dozen|pair of|couple of|several|many|lots of|bunch of)\b/;
+  // returns { entry } or { error, suggestions }
+  function lookup(input) {
+    var raw = String(input || '').trim();
+    if (!raw) return { error: 'Type something to put on the pan.' };
+    var key = norm(raw);
+    if (INDEX[key]) return { entry: INDEX[key] };
+    if (MULTI.test(raw.toLowerCase())) return { error: 'One object per slot, no multiples.' };
+    var words = key.split(' ');
+    // "my grandma's heavy toaster" -> try the last 3, 2, then 1 words
+    for (var n = Math.min(3, words.length - 1); n >= 1; n--) {
+      var tail = words.slice(-n).join(' ');
+      if (INDEX[tail]) return { entry: INDEX[tail] };
+    }
+    // typos
+    var best = null, bd = 9;
+    KEYS.forEach(function (k) { if (k.length < 4) return; var d = lev(key, k); if (d < bd) { bd = d; best = k; } });
+    var allow = key.length <= 6 ? 1 : 2;
+    if (best && bd <= allow) return { entry: INDEX[best], corrected: true };
+    var sugg = KEYS.map(function (k) { return [k, lev(key, k)]; }).filter(function (x) { return x[1] <= 4; })
+      .sort(function (a, b) { return a[1] - b[1]; }).slice(0, 3).map(function (x) { return INDEX[x[0]].name; });
+    return { error: 'The scale doesn\'t know "' + raw + '" yet.', suggestions: sugg.filter(function (s, i) { return sugg.indexOf(s) === i; }) };
+  }
 
-  function bestCombo(load, shelf) {
-    var best = null;
-    function consider(idx) {
-      var m = idx.reduce(function (s, i) { return s + shelf[i][2]; }, 0);
-      var err = Math.abs(Math.log(m / load));
-      if (!best || err < best.err) best = { idx: idx.slice(), mass: m, err: err };
-    }
-    for (var a = 0; a < shelf.length; a++) {
-      consider([a]);
-      for (var b = a + 1; b < shelf.length; b++) {
-        consider([a, b]);
-        for (var c = b + 1; c < shelf.length; c++) consider([a, b, c]);
-      }
-    }
-    return best;
-  }
-  function makeRound(R, load) {
-    for (var t = 0; t < 600; t++) {
-      // mostly items lighter than the load, a couple heavier as traps
-      var pool = shuffle(R, ITEMS.filter(function (it) { return Math.abs(Math.log(it[2] / load[2])) > 0.12 && it[2] < load[2] * 2.5; }));
-      if (pool.length < SHELF) pool = shuffle(R, ITEMS.filter(function (it) { return Math.abs(Math.log(it[2] / load[2])) > 0.12; }));
-      var shelf = pool.slice(0, SHELF);
-      // no two shelf items within 10% of each other, so each one reads as different
-      var ok = true;
-      for (var i = 0; i < shelf.length && ok; i++) for (var j = i + 1; j < shelf.length; j++) if (Math.abs(Math.log(shelf[i][2] / shelf[j][2])) < 0.1) { ok = false; break; }
-      if (!ok) continue;
-      var best = bestCombo(load[2], shelf);
-      if (best.err > 0.04) continue;          // a near-perfect balance must exist
-      if (best.idx.length < 2) continue;      // and it takes more than one item
-      return { load: load, shelf: shelf, best: best };
-    }
-    return null;
-  }
   function makeDay(ymd) {
-    var R = rng('cw:' + ymd);
-    var loads = shuffle(R, LOADS).slice(0, ROUNDS).sort(function (a, b) { return a[2] - b[2]; });
-    return loads.map(function (l, k) { return makeRound(rng('cw:' + ymd + ':' + k), l); });
+    var R = rng('cw2:' + ymd);
+    return shuffle(R, CW_LOADS).slice(0, ROUNDS).sort(function (a, b) { return a[2] - b[2]; }).map(function (l) { return { load: l }; });
   }
-  function score(round, picks) {
-    var m = picks.reduce(function (s, i) { return s + round.shelf[i][2]; }, 0);
-    if (!m) return { mass: 0, ratio: 0, points: 0, off: 1, level: false };
+  function score(round, entries) {
+    var m = entries.reduce(function (s, e) { return s + e.kg; }, 0);
+    if (!m) return { mass: 0, ratio: 0, points: 0, off: -1, level: false };
     var err = Math.abs(Math.log(m / round.load[2]));
-    var points = Math.round(100 * Math.exp(-err / 0.2));
-    return { mass: m, ratio: m / round.load[2], points: points, off: m / round.load[2] - 1, level: err <= 0.02 };
+    return { mass: m, ratio: m / round.load[2], points: Math.round(100 * Math.exp(-err / 0.2)), off: m / round.load[2] - 1, level: err <= 0.02 };
   }
   function fmt(kg) {
     var lb = kg * 2.20462;
-    if (kg < 1) return Math.round(kg * 1000) + ' g (' + (lb * 16).toFixed(lb * 16 < 10 ? 1 : 0) + ' oz)';
+    if (kg < 1) return (kg < 0.01 ? (kg * 1000).toFixed(1) : Math.round(kg * 1000)) + ' g (' + (lb * 16 < 10 ? (lb * 16).toFixed(1) : Math.round(lb * 16)) + ' oz)';
     return (kg < 10 ? kg.toFixed(kg < 3 ? 2 : 1) : Math.round(kg)) + ' kg (' + (lb < 10 ? lb.toFixed(1) : Math.round(lb)) + ' lb)';
   }
-  return { ROUNDS: ROUNDS, MAX_PICK: MAX_PICK, makeDay: makeDay, score: score, fmt: fmt, dayNumber: dayNumber };
+  return { ROUNDS: ROUNDS, MAX_PICK: MAX_PICK, lookup: lookup, makeDay: makeDay, score: score, fmt: fmt, dayNumber: dayNumber, size: ENTRIES.length };
 })();
 
 
@@ -199,7 +248,7 @@ var CW = (function () {
   var $ = function (id) { return document.getElementById(id); };
   function track(n) { try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'event-' + n, title: n, event: true }); } catch (e) {} }
   if (CONFIG.goatcounter) { var g = document.createElement('script'); g.async = true; g.src = 'https://gc.zgo.at/count.js'; g.setAttribute('data-goatcounter', 'https://' + CONFIG.goatcounter + '.goatcounter.com/count'); document.head.appendChild(g); }
-  var KEY = 'counterweight:v1', store;
+  var KEY = 'counterweight:v2', store;
   try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { store = {}; }
   store.days = store.days || {};
   function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
@@ -208,88 +257,93 @@ var CW = (function () {
   var dateTxt = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   $('meta').innerHTML = 'Weigh-in No. ' + no + '<br>' + dateTxt;
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // a round's answer is the list of catalogue entries the player put on the pan
   var ds = store.days[today] = store.days[today] || { a: [] };
-  var idx = 0, picks = [], weighed = false;
+  var idx = 0, pan = [], weighed = false;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function show(id) { ['intro', 'play', 'summary'].forEach(function (s) { $(s).hidden = s !== id; }); }
+  function usedIds() { var u = {}; ds.a.forEach(function (r) { (r || []).forEach(function (e) { u[e.id] = e.name; }); }); pan.forEach(function (e) { u[e.id] = e.name; }); return u; }
 
-  // ---- the scale ----
-  function scaleSVG(round, sel, angle) {
-    var load = round.load, right = sel.map(function (i) { return round.shelf[i][0]; }).join(' ');
-    var a = angle || 0, cx = 300, cy = 92, L = 210;
+  function scaleSVG(round, angle, right) {
+    var load = round.load, a = angle || 0, cx = 300, cy = 92, L = 210;
     var rad = a * Math.PI / 180, dx = Math.cos(rad) * L, dy = Math.sin(rad) * L;
     var lx = cx - dx, ly = cy - dy, rx = cx + dx, ry = cy + dy;
-    function pan(x, y, content, size) {
+    function pan(x, y, content, isText) {
       return '<line x1="' + x + '" y1="' + y + '" x2="' + (x - 62) + '" y2="' + (y + 92) + '" stroke="var(--brass-dark)" stroke-width="2"/>' +
         '<line x1="' + x + '" y1="' + y + '" x2="' + (x + 62) + '" y2="' + (y + 92) + '" stroke="var(--brass-dark)" stroke-width="2"/>' +
         '<path d="M' + (x - 80) + ' ' + (y + 92) + ' Q' + x + ' ' + (y + 132) + ' ' + (x + 80) + ' ' + (y + 92) + ' Z" fill="var(--pan)" stroke="var(--brass-dark)" stroke-width="2.5"/>' +
-        '<text x="' + x + '" y="' + (y + 86) + '" font-size="' + size + '" text-anchor="middle">' + content + '</text>';
+        (isText ? content : '<text x="' + x + '" y="' + (y + 86) + '" font-size="46" text-anchor="middle">' + content + '</text>');
     }
-    var h = '';
-    h += '<rect x="230" y="268" width="140" height="18" rx="3" fill="var(--brass-dark)"/>';
-    h += '<rect x="292" y="96" width="16" height="174" fill="var(--brass)"/>';
-    h += '<path d="M300 40 L314 92 L286 92 Z" fill="var(--needle)"/>';
-    // needle on the post shows the tilt
-    h += '<g transform="rotate(' + (a * 2.2) + ' 300 120)"><line x1="300" y1="120" x2="300" y2="176" stroke="var(--needle)" stroke-width="4" stroke-linecap="round"/></g>';
-    h += '<circle cx="300" cy="120" r="7" fill="var(--brass-dark)"/>';
-    h += '<line x1="' + lx + '" y1="' + ly + '" x2="' + rx + '" y2="' + ry + '" stroke="var(--brass)" stroke-width="10" stroke-linecap="round"/>';
-    h += '<circle cx="' + cx + '" cy="' + cy + '" r="9" fill="var(--brass-dark)"/>';
-    h += pan(lx, ly, load[0], 46);
-    h += pan(rx, ry, right || '', sel.length > 2 ? 30 : 38);
-    if (!sel.length) h += '<text x="' + rx + '" y="' + (ry + 80) + '" font-size="15" text-anchor="middle" fill="var(--muted)" font-family="Familjen Grotesk, sans-serif">empty</text>';
+    var h = '<rect x="230" y="268" width="140" height="18" rx="3" fill="var(--brass-dark)"/><rect x="292" y="96" width="16" height="174" fill="var(--brass)"/><path d="M300 40 L314 92 L286 92 Z" fill="var(--needle)"/>';
+    h += '<g transform="rotate(' + (a * 2.2) + ' 300 120)"><line x1="300" y1="120" x2="300" y2="176" stroke="var(--needle)" stroke-width="4" stroke-linecap="round"/></g><circle cx="300" cy="120" r="7" fill="var(--brass-dark)"/>';
+    h += '<line x1="' + lx + '" y1="' + ly + '" x2="' + rx + '" y2="' + ry + '" stroke="var(--brass)" stroke-width="10" stroke-linecap="round"/><circle cx="' + cx + '" cy="' + cy + '" r="9" fill="var(--brass-dark)"/>';
+    h += pan(lx, ly, load[0], false);
+    var labels = right.map(function (e, k) { return '<text x="' + rx + '" y="' + (ry + 50 + k * 17 - (right.length - 1) * 8) + '" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)" font-family="Familjen Grotesk, sans-serif">' + esc(e.name.length > 18 ? e.name.slice(0, 17) + '…' : e.name) + '</text>'; }).join('');
+    h += pan(rx, ry, right.length ? labels : '<text x="' + rx + '" y="' + (ry + 80) + '" font-size="15" text-anchor="middle" fill="var(--muted)" font-family="Familjen Grotesk, sans-serif">empty</text>', true);
     return h;
   }
-  function drawScale(angle) { $('scale').innerHTML = scaleSVG(day[idx], picks, angle); }
-  function tiltFor(res) { if (!res.mass) return -14; var lr = Math.log(res.ratio); return Math.max(-14, Math.min(14, lr * 30)); }
+  function drawScale(angle) { $('scale').innerHTML = scaleSVG(day[idx], angle, pan); }
+  function tiltFor(res) { if (!res.mass) return -14; return Math.max(-14, Math.min(14, Math.log(res.ratio) * 30)); }
 
   function renderRound() {
-    var r = day[idx]; picks = []; weighed = false;
+    var r = day[idx]; pan = []; weighed = false;
     $('loadName').textContent = r.load[1];
     $('rno').textContent = 'Round ' + (idx + 1) + ' of ' + day.length;
-    $('reading').textContent = '';
-    $('shelf').innerHTML = r.shelf.map(function (it, i) { return '<li><button class="tagbtn" data-i="' + i + '" aria-pressed="false"><span class="e" aria-hidden="true">' + it[0] + '</span><span class="n">' + esc(it[1]) + '<span class="kg" hidden></span></span></button></li>'; }).join('');
-    Array.prototype.forEach.call(document.querySelectorAll('.tagbtn'), function (b) { b.addEventListener('click', function () { toggle(+b.getAttribute('data-i')); }); });
-    $('controls').hidden = false; $('after').hidden = true;
-    refresh(); drawScale(0);
+    $('reading').textContent = ''; $('msg').textContent = ''; $('thing').value = '';
+    $('adder').hidden = false; $('controls').hidden = false; $('after').hidden = true;
+    renderPan(); drawScale(0);
     window.scrollTo(0, 0);
   }
-  function toggle(i) {
+  function renderPan() {
+    $('pan').innerHTML = pan.map(function (e, k) {
+      return '<li>' + esc(e.name) + (weighed ? ' <span class="kg">about ' + CW.fmt(e.kg) + '</span>' : ' <button type="button" data-k="' + k + '" aria-label="Take ' + esc(e.name) + ' off the pan">×</button>') + '</li>';
+    }).join('');
+    Array.prototype.forEach.call($('pan').querySelectorAll('button'), function (b) { b.addEventListener('click', function () { pan.splice(+b.getAttribute('data-k'), 1); renderPan(); drawScale(0); }); });
+    $('weighBtn').disabled = !pan.length || weighed;
+    $('addBtn').disabled = weighed || pan.length >= CW.MAX_PICK;
+    var u = usedIds(), names = Object.keys(u).filter(function (id) { return !pan.some(function (e) { return e.id === id; }); }).map(function (id) { return u[id]; });
+    $('used').textContent = names.length ? 'Already used today: ' + names.join(', ') + '.' : '';
+  }
+  // the object on the left pan itself (or its twin in the catalogue) can't go on the right
+  function isTheLoad(e) {
+    var L = day[idx].load, words = L[1].toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(function (w) { return w.length > 2; });
+    var shares = e.name.toLowerCase().split(/[^a-z0-9]+/).some(function (w) { return w.length > 2 && words.indexOf(w) >= 0; });
+    return shares && Math.abs(Math.log(e.kg / L[2])) < 0.05;
+  }
+  function add(text) {
     if (weighed) return;
-    var k = picks.indexOf(i);
-    if (k >= 0) picks.splice(k, 1); else if (picks.length < CW.MAX_PICK) picks.push(i); else { toast('The pan holds three things. Take one off first.'); return; }
-    refresh(); drawScale(0);
+    if (pan.length >= CW.MAX_PICK) { $('msg').textContent = 'The pan holds three things.'; return; }
+    var r = CW.lookup(text);
+    if (!r.entry) {
+      $('msg').innerHTML = esc(r.error) + (r.suggestions && r.suggestions.length ? ' Did you mean ' + r.suggestions.map(function (s) { return '<button type="button" data-s="' + esc(s) + '">' + esc(s) + '</button>'; }).join(', ') + '?' : (r.suggestions ? ' Try something more everyday.' : ''));
+      Array.prototype.forEach.call($('msg').querySelectorAll('button'), function (b) { b.addEventListener('click', function () { add(b.getAttribute('data-s')); }); });
+      return;
+    }
+    var e = { id: r.entry.id, name: r.entry.name, kg: r.entry.kg };
+    if (usedIds()[e.id]) { $('msg').textContent = 'You\'ve already used ' + e.name + ' today. Try something else.'; return; }
+    if (isTheLoad(e)) { $('msg').textContent = 'That\'s what\'s on the other pan. Nice try.'; return; }
+    pan.push(e); $('thing').value = ''; $('msg').textContent = r.corrected ? 'Read that as "' + e.name + '".' : '';
+    renderPan(); drawScale(0);
   }
-  function refresh() {
-    Array.prototype.forEach.call(document.querySelectorAll('.tagbtn'), function (b) { b.setAttribute('aria-pressed', String(picks.indexOf(+b.getAttribute('data-i')) >= 0)); b.disabled = weighed; });
-    $('weighBtn').disabled = !picks.length || weighed;
-    $('hint').textContent = picks.length ? picks.length + ' of 3 on the pan' : 'Pick up to three.';
-  }
+  $('adder').addEventListener('submit', function (ev) { ev.preventDefault(); add($('thing').value); $('thing').focus(); });
   $('weighBtn').addEventListener('click', function () {
-    if (!picks.length || weighed) return;
-    weighed = true; refresh();
+    if (!pan.length || weighed) return;
+    weighed = true;
     if (idx === 0 && !ds.a.length) track('start');
-    ds.a[idx] = picks.slice(); save();
-    var r = day[idx], res = CW.score(r, picks), target = tiltFor(res);
-    // the beam swings past and settles, like a real balance
+    ds.a[idx] = pan.slice(); save();
+    $('adder').hidden = true; renderPan();
+    var r = day[idx], res = CW.score(r, pan), target = tiltFor(res);
     var t0 = performance.now(), dur = reduce ? 0 : 1400;
     (function swing() {
       var t = dur ? Math.min(1, (performance.now() - t0) / dur) : 1;
-      var ang = target * (1 - Math.exp(-5 * t) * Math.cos(9 * t));
-      drawScale(t >= 1 ? target : ang);
+      drawScale(t >= 1 ? target : target * (1 - Math.exp(-5 * t) * Math.cos(9 * t)));
       if (t < 1) requestAnimationFrame(swing); else afterWeigh(r, res);
     })();
   });
   function afterWeigh(r, res) {
     var pct = Math.round(Math.abs(res.off) * 100);
-    $('reading').innerHTML = res.level ? 'Dead level. <b>' + res.points + '</b> points.' :
-      'Your side is <b>' + pct + '%</b> ' + (res.off < 0 ? 'light' : 'heavy') + '. <b>' + res.points + '</b> points.';
-    Array.prototype.forEach.call(document.querySelectorAll('.tagbtn'), function (b) {
-      var i = +b.getAttribute('data-i'), kg = b.querySelector('.kg');
-      kg.textContent = 'about ' + CW.fmt(r.shelf[i][2]); kg.hidden = false;
-      if (r.best.idx.indexOf(i) >= 0) b.classList.add('best');
-    });
+    $('reading').innerHTML = res.level ? 'Dead level. <b>' + res.points + '</b> points.' : 'Your side is <b>' + pct + '%</b> ' + (res.off < 0 ? 'light' : 'heavy') + '. <b>' + res.points + '</b> points.';
     $('facts').textContent = r.load[1] + ': about ' + CW.fmt(r.load[2]) + '. ' + r.load[3] + '. Your pan: about ' + CW.fmt(res.mass) + '.';
-    $('bestLine').textContent = 'Closest possible from this shelf (gold outline): ' + r.best.idx.map(function (i) { return r.shelf[i][1].toLowerCase(); }).join(' + ') + ', about ' + CW.fmt(r.best.mass) + '.';
     $('controls').hidden = true; $('after').hidden = false;
     $('nextBtn').textContent = idx < day.length - 1 ? 'Next round' : 'Print the ticket';
     $('after').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
@@ -298,21 +352,21 @@ var CW = (function () {
 
   function finish() {
     show('summary');
-    var rows = day.map(function (r, i) { return { r: r, res: CW.score(r, ds.a[i]) }; });
+    var rows = day.map(function (r, i) { return { r: r, pan: ds.a[i], res: CW.score(r, ds.a[i]) }; });
     var total = rows.reduce(function (s, x) { return s + x.res.points; }, 0);
-    var avgOff = Math.round(100 * rows.reduce(function (s, x) { return s + Math.abs(x.res.off); }, 0) / rows.length);
+    var avgOff = Math.round(100 * rows.reduce(function (s, x) { return s + Math.min(1, Math.abs(x.res.off)); }, 0) / rows.length);
     if (!ds.done) { ds.done = 1; ds.total = total; save(); track('finish'); }
     $('tSub').textContent = 'Weigh-in No. ' + no + ' · ' + dateTxt;
     $('tTable').innerHTML = rows.map(function (x) {
       var p = Math.round(Math.abs(x.res.off) * 100);
-      return '<tr><td>' + esc(x.r.load[1]) + '<br><span class="note" style="margin:0">' + (x.res.level ? 'dead level' : p + '% ' + (x.res.off < 0 ? 'light' : 'heavy')) + '</span></td><td class="n">' + x.res.points + '</td></tr>';
+      return '<tr><td>' + esc(x.r.load[1]) + '<br><span class="note" style="margin:0">' + esc(x.pan.map(function (e) { return e.name; }).join(' + ')) + ' · ' + (x.res.level ? 'dead level' : p + '% ' + (x.res.off < 0 ? 'light' : 'heavy')) + '</span></td><td class="n">' + x.res.points + '</td></tr>';
     }).join('') + '<tr class="total"><td>Total</td><td class="n">' + total + ' / ' + (rows.length * 100) + '</td></tr>';
     var line = rows.map(function (x) { var p = Math.abs(x.res.off); return x.res.level ? '🟩' : p <= 0.1 ? '🟨' : p <= 0.3 ? '🟧' : '🟥'; }).join('');
-    var tilt = rows.map(function (x) { return x.res.level ? '⚖️' : x.res.off < 0 ? '⬆️' : '⬇️'; }).join('');
-    $('shareText').textContent = 'Counterweight No. ' + no + ' · ' + total + '/' + (rows.length * 100) + '\n' + line + '\n' + tilt + '\nAverage miss: ' + avgOff + '%' + (CONFIG.siteUrl ? '\n' + CONFIG.siteUrl : '');
+    var best = rows.slice().sort(function (a, b) { return b.res.points - a.res.points; })[0];
+    $('shareText').textContent = 'Counterweight No. ' + no + ' · ' + total + '/' + (rows.length * 100) + '\n' + line + '\nAverage miss: ' + avgOff + '%' + (CONFIG.siteUrl ? '\n' + CONFIG.siteUrl : '');
     var done = Object.keys(store.days).filter(function (k) { return store.days[k].done; });
     var streak = 0, d = new Date(); while (store.days[ymdOf(d)] && store.days[ymdOf(d)].done) { streak++; d.setDate(d.getDate() - 1); }
-    $('streak').textContent = 'Weigh-ins: ' + done.length + '. Streak: ' + streak + '. New weights at midnight, your time. Weights are typical values, so real ones vary a little.';
+    $('streak').textContent = 'Weigh-ins: ' + done.length + '. Streak: ' + streak + '. New weights at midnight, your time. Weights are typical values from a ' + CW.size + '-object catalogue, so real ones vary.';
     window.scrollTo(0, 0);
   }
   $('shareBtn').addEventListener('click', function () {
