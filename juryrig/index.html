@@ -1,0 +1,484 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><meta property="og:title" content="Jury Rig"><meta property="og:description" content="Four everyday disasters a day. Fix each one with junk-drawer items, and score more for the fix nobody else thinks of."></head><body><title>Jury Rig</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Four everyday disasters a day. Fix each one with junk-drawer items, and score more for the fix nobody else thinks of.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Public+Sans:wght@400;600;800&family=Kalam:wght@700&display=swap">
+<style>
+/* Layout: a workshop pegboard. The job ticket is pinned at the top, tape-labelled items hang below, and three bench slots sit at the bottom. */
+:root {
+  --board: #c7a57a; --board-hole: #8d6c47; --board-edge: #a8875f;
+  --paper: #f3eedf; --tape: #ece2c4; --ink: #2a241d; --muted: #6a5c4b; --pencil: #3d3a7a;
+  --steel: #59636b; --go: #2f7a46; --stop: #b23a2a; --stamp: #b23a2a;
+  --font-display: "Saira Stencil One", "Arial Black", Impact, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-hand: "Kalam", "Comic Sans MS", "Marker Felt", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --board: #3a3530; --board-hole: #211e1b; --board-edge: #2f2b27;
+    --paper: #e9e2cf; --tape: #d9ceb0; --ink: #221d17; --muted: #5e5243; --pencil: #3d3a7a;
+    --steel: #8b969e; --go: #2f7a46; --stop: #b23a2a; --stamp: #b23a2a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --board: #3a3530; --board-hole: #211e1b; --board-edge: #2f2b27;
+  --paper: #e9e2cf; --tape: #d9ceb0; --ink: #221d17; --muted: #5e5243; --pencil: #3d3a7a;
+  --steel: #8b969e; --go: #2f7a46; --stop: #b23a2a; --stamp: #b23a2a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--board); }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45;
+  background-color: var(--board);
+  background-image: radial-gradient(circle at 12px 12px, var(--board-hole) 3.2px, transparent 3.8px);
+  background-size: 24px 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 56px; min-height: 100vh;
+}
+.wrap { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+header.top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.wordmark { font-family: var(--font-display); font-size: 44px; line-height: .9; color: var(--paper); letter-spacing: .02em; }
+.meta { background: var(--tape); padding: 4px 10px 5px; font-size: 13px; font-weight: 600; transform: rotate(1.5deg); }
+/* paper pinned to the board */
+.ticket { background: var(--paper); padding: 18px 18px 16px; position: relative; box-shadow: 0 1px 0 var(--board-edge), 0 6px 0 -2px color-mix(in srgb, var(--board-hole) 45%, transparent); }
+.ticket::before { content: ""; position: absolute; top: -9px; left: 50%; width: 64px; height: 20px; margin-left: -32px; background: color-mix(in srgb, var(--tape) 85%, transparent); transform: rotate(-2deg); }
+.jobline { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.ticket h2 { font-size: 23px; line-height: 1.2; margin: 8px 0 4px; font-weight: 800; text-wrap: balance; }
+.ticket p { margin: 0; }
+.needs { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.needs li { font-family: var(--font-hand); color: var(--pencil); font-size: 17px; line-height: 1.3; }
+.needs li::before { content: "Needs: "; font-family: var(--font-body); font-weight: 800; color: var(--ink); font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+.needs li.ok { color: var(--go); }
+.needs li.no { color: var(--stop); text-decoration: line-through; text-decoration-thickness: 2px; }
+.intro p + p { margin-top: 8px; }
+
+/* hanging items */
+.hooks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 14px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 520px) { .hooks { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.item {
+  appearance: none; border: 0; width: 100%; cursor: pointer; font: inherit; color: var(--ink); text-align: left;
+  background: var(--tape); padding: 12px 10px 10px; position: relative; min-height: 74px;
+  clip-path: polygon(0 4%, 6% 0, 13% 5%, 21% 1%, 30% 4%, 38% 0, 47% 3%, 56% 0, 64% 4%, 73% 1%, 82% 4%, 91% 0, 100% 3%, 100% 97%, 93% 100%, 85% 96%, 76% 100%, 67% 97%, 58% 100%, 49% 96%, 40% 100%, 31% 97%, 22% 100%, 13% 96%, 5% 100%, 0 96%);
+  transition: transform .18s ease-out;
+}
+.hooks li { position: relative; padding-top: 14px; }
+.hooks li::before { content: ""; position: absolute; top: 0; left: 50%; width: 4px; height: 18px; margin-left: -2px; background: var(--steel); border-radius: 2px; }
+.hooks li:nth-child(3n+1) .item { transform: rotate(-1.6deg); }
+.hooks li:nth-child(3n+2) .item { transform: rotate(1.2deg); }
+.item .emo { display: block; font-size: 26px; line-height: 1; height: 28px; }
+.item .nm { display: block; font-weight: 600; font-size: 15px; margin-top: 6px; line-height: 1.2; }
+.item[aria-pressed="true"] { background: var(--paper); outline: 3px solid var(--pencil); outline-offset: -3px; transform: translateY(4px) rotate(0deg); }
+.item:disabled { cursor: default; opacity: .55; }
+.item:focus-visible { outline: 3px solid var(--pencil); outline-offset: 2px; }
+
+/* bench */
+.bench { background: var(--steel); padding: 12px; display: grid; gap: 10px; }
+.slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.slot { border: 2px dashed color-mix(in srgb, var(--paper) 55%, transparent); min-height: 54px; display: flex; align-items: center; justify-content: center; color: var(--paper); font-size: 13px; text-align: center; padding: 4px; }
+.slot.full { border-style: solid; background: var(--tape); color: var(--ink); font-weight: 600; }
+.benchrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--paper); font-size: 14px; }
+.btn { appearance: none; border: 0; background: var(--ink); color: var(--paper); font: 800 16px/1 var(--font-body); padding: 14px 18px; min-height: 48px; cursor: pointer; letter-spacing: .02em; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.alt { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+.btn:focus-visible { outline: 3px solid var(--pencil); outline-offset: 2px; }
+
+/* verdict stamp */
+.verdict { margin-top: 14px; padding-top: 12px; border-top: 1.5px dashed var(--muted); display: grid; gap: 6px; }
+.stamp { justify-self: start; font-family: var(--font-display); font-size: 26px; letter-spacing: .04em; padding: 2px 12px; border: 3px solid currentColor; transform: rotate(-4deg); }
+.stamp.ok { color: var(--go); } .stamp.no { color: var(--stamp); }
+@media (prefers-reduced-motion: no-preference) { .stamp { animation: thump .28s ease-out; } }
+@keyframes thump { from { transform: rotate(-4deg) scale(1.6); opacity: 0; } to { transform: rotate(-4deg) scale(1); opacity: 1; } }
+.pts { font-size: 15px; } .pts b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.note { font-size: 14px; color: var(--muted); margin: 0; }
+
+/* final work order */
+.order h2 { margin-top: 4px; }
+.order table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14.5px; }
+.order td { padding: 7px 0; border-bottom: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); vertical-align: top; }
+.order td.n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 800; white-space: nowrap; padding-left: 10px; }
+.order tr.total td { border-bottom: 0; font-weight: 800; font-size: 17px; padding-top: 10px; }
+pre.share { margin: 12px 0 0; padding: 10px 12px; background: color-mix(in srgb, var(--tape) 70%, var(--paper)); font: 500 14px/1.45 ui-monospace, Menlo, monospace; white-space: pre-wrap; user-select: all; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.actions .btn { flex: 1 1 auto; }
+.toast { position: fixed; left: 16px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); padding: 10px 14px; font-size: 14px; z-index: 20; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="wordmark">Jury Rig</div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section class="ticket intro" id="intro">
+    <div class="jobline"><span>How it works</span></div>
+    <h2>Four small disasters. One junk drawer.</h2>
+    <p>Each job tells you what the fix needs. Pick up to three things from the board and test it. If it holds, you score. The less obvious your fix, the more it's worth: everyone reaches for the napkin, so the cork scores more.</p>
+    <p>Useless extras cost points.</p>
+    <div class="actions"><button class="btn" id="startBtn">Start today's jobs</button></div>
+  </section>
+
+  <section id="play" hidden style="display:flex;flex-direction:column;gap:22px">
+    <div class="ticket">
+      <div class="jobline"><span id="jobNo"></span><span id="jobScore"></span></div>
+      <h2 id="jobTitle"></h2>
+      <p id="jobDesc"></p>
+      <ul class="needs" id="needs"></ul>
+      <div class="verdict" id="verdict" hidden>
+        <span class="stamp" id="stamp"></span>
+        <div class="pts" id="pts"></div>
+        <p class="note" id="goto"></p>
+        <p class="note" id="others"></p>
+        <div class="actions"><button class="btn" id="nextBtn">Next job</button></div>
+      </div>
+    </div>
+    <ul class="hooks" id="hooks"></ul>
+    <div class="bench" id="bench">
+      <div class="slots" id="slots"></div>
+      <div class="benchrow"><span id="benchHint">Pick up to three things.</span><button class="btn" id="testBtn" disabled>Test the fix</button></div>
+    </div>
+  </section>
+
+  <section class="ticket order" id="summary" hidden>
+    <div class="jobline"><span id="orderNo"></span><span id="orderDate"></span></div>
+    <h2 id="orderTitle"></h2>
+    <table id="orderTable"></table>
+    <pre class="share" id="shareText"></pre>
+    <div class="actions"><button class="btn" id="shareBtn">Copy result</button></div>
+    <p class="note" id="streak" style="margin-top:12px"></p>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// Jury Rig content. Written once, checked by test.js.
+// o = estimated share of people who'd reach for that item first (our estimate, not a survey).
+var JR_ITEMS = {
+  coin: ['🪙', 'Coin'], paperclip: ['📎', 'Paperclip'], binderclip: ['', 'Binder clip'], rubberband: ['', 'Rubber band'],
+  hairtie: ['', 'Hair tie'], sock: ['🧦', 'Clean sock'], spoon: ['🥄', 'Spoon'], fork: ['🍴', 'Fork'], chopsticks: ['🥢', 'Chopsticks'],
+  mug: ['☕', 'Mug'], glass: ['🥛', 'Drinking glass'], jar: ['🫙', 'Glass jar'], candle: ['🕯️', 'Candle'], phone: ['📱', 'Phone'],
+  laptop: ['💻', 'Laptop'], watch: ['⌚', 'Smartwatch'], book: ['📖', 'Paperback'], newspaper: ['📰', 'Newspaper'], umbrella: ['☂️', 'Umbrella'],
+  scissors: ['✂️', 'Scissors'], safetypin: ['🧷', 'Safety pin'], thread: ['🧵', 'Thread'], magnet: ['🧲', 'Fridge magnet'], key: ['🔑', 'House key'],
+  sponge: ['🧽', 'Sponge'], soap: ['🧼', 'Bar of soap'], shoe: ['👟', 'Sneaker'], boot: ['🥾', 'Rain boot'], gloves: ['🧤', 'Rubber gloves'],
+  scarf: ['🧣', 'Scarf'], towel: ['', 'Dish towel'], banana: ['🍌', 'Banana'], lemon: ['🍋', 'Lemon'], salt: ['🧂', 'Salt'], ice: ['🧊', 'Ice cubes'],
+  butter: ['🧈', 'Butter'], cards: ['🃏', 'Playing card'], pencil: ['✏️', 'Pencil'], crayon: ['🖍️', 'Crayon'], envelope: ['✉️', 'Envelope'],
+  box: ['📦', 'Cardboard box'], bag: ['🛍️', 'Plastic bag'], tincan: ['🥫', 'Tin of beans'], mirror: ['🪞', 'Hand mirror'], tp: ['🧻', 'Toilet paper'],
+  sunglasses: ['🕶️', 'Sunglasses'], creditcard: ['💳', 'Old gift card'], receipt: ['🧾', 'Receipt'], pushpin: ['📌', 'Push pin'], wrench: ['🔧', 'Wrench'],
+  frypan: ['🍳', 'Frying pan'], plunger: ['', 'Plunger'], hanger: ['', 'Wire hanger'], ziptie: ['', 'Zip tie'], bakingsoda: ['', 'Baking soda'],
+  vinegar: ['', 'White vinegar'], oil: ['', 'Cooking oil'], peas: ['🫛', 'Frozen peas'], lipbalm: ['', 'Lip balm'], floss: ['', 'Dental floss'],
+  toothpick: ['', 'Toothpick'], breadtag: ['', 'Bread-bag tag'], clothespin: ['', 'Clothespin'], napkin: ['', 'Paper napkin'], coaster: ['', 'Coaster'],
+  matchbook: ['', 'Matchbook'], blanket: ['', 'Throw blanket'], poolnoodle: ['', 'Pool noodle'], winebottle: ['🍾', 'Empty wine bottle'],
+  waterbottle: ['', 'Plastic water bottle'], foil: ['', 'Aluminium foil'], sandpaper: ['', 'Sandpaper'], lintroller: ['', 'Lint roller'],
+  tape: ['', 'Sticky tape'], papertowel: ['', 'Paper towel'], sieve: ['', 'Fine sieve'], sparkling: ['', 'Sparkling water'], dishsoap: ['', 'Dish soap'],
+  pen: ['🖊️', 'Click pen'], eltape: ['', 'Electrical tape'], sanitizer: ['', 'Hand sanitizer'], peanutbutter: ['🥜', 'Peanut butter'],
+  hairdryer: ['', 'Hair dryer'], ruler: ['📏', 'Ruler'], pillow: ['', 'Pillow'], balloon: ['🎈', 'Balloon'], string: ['', 'String'],
+  cork: ['', 'Wine cork'], bowl: ['🥣', 'Bowl'], plate: ['🍽️', 'Plate'], dice: ['🎲', 'Dice'], battery: ['🔋', 'AA battery'], egg: ['🥚', 'Egg'],
+  bread: ['🍞', 'Slice of bread'], honey: ['🍯', 'Honey'], rice: ['🍚', 'Cooked rice'], hat: ['🧢', 'Cap'], belt: ['', 'Belt'], yarn: ['🧶', 'Yarn']
+};
+
+var JR_PROBLEMS = [
+  { t: 'The wobbly café table', d: 'One leg is a few millimetres short and your coffee keeps sloshing.',
+    needs: [{ n: 'something thin and firm to wedge under the short leg', fix: { napkin: .5, coaster: .35, coin: .2, cards: .1, matchbook: .08, receipt: .15, cork: .05 } }],
+    decoys: ['balloon', 'honey', 'scarf', 'ice', 'banana', 'yarn'] },
+  { t: 'Video call, nowhere to prop the phone', d: 'You need the phone standing up at face height for an hour.',
+    needs: [{ n: 'something to lean the phone against', fix: { mug: .45, book: .4, glass: .25, binderclip: .1, sunglasses: .08, banana: .04, cards: .03 } }],
+    decoys: ['salt', 'thread', 'ice', 'egg', 'soap', 'floss'] },
+  { t: 'Cereal, but every bowl is dirty', d: 'Milk is poured in your head already. You also can\'t find a clean spoon.',
+    needs: [{ n: 'a clean container that holds milk', fix: { mug: .6, glass: .3, jar: .12, waterbottle: .04 } },
+            { n: 'something to eat it with', fix: { fork: .5, chopsticks: .08 } }],
+    decoys: ['sponge', 'envelope', 'box', 'hat', 'scissors'] },
+  { t: 'The closet light just died', d: 'You need to find one black sock in a dark closet.',
+    needs: [{ n: 'a light you can hold', fix: { phone: .85, laptop: .1, watch: .06 } }],
+    decoys: ['candle', 'mirror', 'magnet', 'battery', 'sunglasses', 'foil'] },
+  { t: 'A jar lid that will not budge', d: 'Pickles are right there. The lid has other plans.',
+    needs: [{ n: 'more grip, or something to break the seal', fix: { towel: .4, rubberband: .3, gloves: .3, spoon: .12, hairtie: .05 } }],
+    decoys: ['salt', 'cards', 'pen', 'envelope', 'balloon', 'coin'] },
+  { t: 'A zipper that keeps sticking', d: 'Your jacket zip catches halfway every single time.',
+    needs: [{ n: 'something slippery to rub on the teeth', fix: { lipbalm: .3, soap: .25, pencil: .15, candle: .15, crayon: .08, butter: .04 } }],
+    decoys: ['salt', 'honey', 'tape', 'thread', 'paperclip', 'sandpaper'] },
+  { t: 'Price sticker goo on a gift', d: 'The label came off. The sticky residue did not.',
+    needs: [{ n: 'something to soften or dissolve the glue', fix: { oil: .35, sanitizer: .2, butter: .08, peanutbutter: .05, hairdryer: .1 } }],
+    decoys: ['salt', 'ice', 'honey', 'sponge', 'tape', 'coin'] },
+  { t: 'The bedroom door squeaks', d: 'Every midnight snack run announces itself to the whole house.',
+    needs: [{ n: 'a lubricant for the hinge', fix: { oil: .4, soap: .15, candle: .12, butter: .06, lipbalm: .05 } }],
+    decoys: ['salt', 'honey', 'sandpaper', 'tape', 'foil', 'rice'] },
+  { t: 'Cold draft under the front door', d: 'A sharp breeze runs across the floor all evening.',
+    needs: [{ n: 'something long and soft to block the gap', fix: { towel: .5, blanket: .3, scarf: .15, poolnoodle: .04, yarn: .03 } }],
+    decoys: ['newspaper', 'plate', 'umbrella', 'book', 'mirror', 'tincan'] },
+  { t: 'Flowers arrived, no vase', d: 'A small bunch of tulips needs water in the next ten minutes.',
+    needs: [{ n: 'a watertight container that stands up', fix: { glass: .35, jar: .3, winebottle: .15, waterbottle: .1, mug: .08, boot: .02, tincan: .05 } }],
+    decoys: ['bag', 'box', 'envelope', 'hat', 'sponge', 'sieve'] },
+  { t: 'Lost the end of the tape roll', d: 'Every time you use it, you spend a minute hunting for the edge.',
+    needs: [{ n: 'something small to fold under the end as a tab', fix: { paperclip: .35, toothpick: .15, breadtag: .1, coin: .08, receipt: .05 } }],
+    decoys: ['butter', 'ice', 'honey', 'magnet', 'balloon', 'oil'] },
+  { t: 'An open bag of chips, no clip', d: 'Stale by morning unless you seal it somehow.',
+    needs: [{ n: 'something to pinch or tie the bag shut', fix: { binderclip: .3, clothespin: .3, rubberband: .25, hairtie: .08, paperclip: .05, ziptie: .03 } }],
+    decoys: ['honey', 'coin', 'spoon', 'magnet', 'cork', 'dice'] },
+  { t: 'Hanging a picture with no hammer', d: 'One small nail, one plaster wall, no hammer anywhere.',
+    needs: [{ n: 'something heavy with a flat face to tap the nail', fix: { shoe: .35, wrench: .25, frypan: .2, tincan: .1, book: .05 } }],
+    decoys: ['pillow', 'sponge', 'balloon', 'egg', 'banana', 'yarn'] },
+  { t: 'A slow sink drain', d: 'The water takes five minutes to go down.',
+    needs: [{ n: 'something to push, hook or fizz the clog loose', fix: { plunger: .55, hanger: .2, ziptie: .08, bakingsoda: .15 } }],
+    decoys: ['honey', 'rice', 'peanutbutter', 'butter', 'pillow', 'tp'] },
+  { t: 'Twisted ankle, empty ice tray', d: 'It needs something cold that will mould around it.',
+    needs: [{ n: 'something frozen and flexible', fix: { peas: .7, ice: .25, sponge: .04 } }],
+    decoys: ['tincan', 'book', 'mug', 'winebottle', 'plate', 'butter'] },
+  { t: 'Knotted necklace chain', d: 'A tiny knot you can\'t pick apart with fingernails.',
+    needs: [{ n: 'something fine and pointed to tease the knot', fix: { safetypin: .4, pushpin: .2, toothpick: .2, paperclip: .1 } }],
+    decoys: ['fork', 'pencil', 'butter', 'scarf', 'mug', 'coin'] },
+  { t: 'Door keeps slamming in the wind', d: 'The window is open and the bedroom door bangs shut every minute.',
+    needs: [{ n: 'something to wedge in the door or cushion it', fix: { shoe: .35, book: .25, towel: .15, sock: .08, cork: .04 } }],
+    decoys: ['balloon', 'thread', 'ice', 'envelope', 'lemon', 'salt'] },
+  { t: 'Coffee on your shirt at lunch', d: 'Twenty minutes before a meeting. Small stain, light shirt.',
+    needs: [{ n: 'something to lift the stain', fix: { sparkling: .35, dishsoap: .3, salt: .1, lemon: .05 } }],
+    decoys: ['butter', 'honey', 'oil', 'peanutbutter', 'crayon', 'balloon'] },
+  { t: 'Scissors gone blunt', d: 'They fold the paper instead of cutting it.',
+    needs: [{ n: 'something to hone the blades by cutting it', fix: { foil: .4, sandpaper: .35 } }],
+    decoys: ['newspaper', 'butter', 'sponge', 'towel', 'cards', 'bread'] },
+  { t: 'A drawer that won\'t slide', d: 'Wooden runners, sticky in humid weather.',
+    needs: [{ n: 'something waxy or soapy to rub on the runners', fix: { candle: .3, soap: .3, crayon: .08, lipbalm: .06 } }],
+    decoys: ['honey', 'salt', 'sandpaper', 'tape', 'peanutbutter', 'rice'] },
+  { t: 'Earring back dropped in the carpet', d: 'Tiny, metal, somewhere in a shaggy rug.',
+    needs: [{ n: 'something to find or pick up a tiny metal thing', fix: { magnet: .35, phone: .3, lintroller: .12, tape: .1 } }],
+    decoys: ['sponge', 'towel', 'fork', 'pillow', 'banana', 'mug'] },
+  { t: 'Out of coffee filters', d: 'Ground coffee, hot water, and no filter.',
+    needs: [{ n: 'something to strain out the grounds', fix: { papertowel: .45, napkin: .2, sieve: .2, sock: .03 } }],
+    decoys: ['newspaper', 'foil', 'bag', 'envelope', 'sponge', 'plate'] },
+  { t: 'Phone cable fraying at the plug', d: 'The coating has split and the wires are starting to show.',
+    needs: [{ n: 'something to wrap and reinforce the weak spot', fix: { eltape: .55, pen: .08, tape: .25, hairtie: .03 } }],
+    decoys: ['foil', 'paperclip', 'honey', 'string', 'butter', 'coin'] },
+  { t: 'Bottle of soda, no opener', d: 'A crown cap, a thirsty friend, and no bottle opener.',
+    needs: [{ n: 'something strong and thin to lever the cap', fix: { spoon: .25, key: .25, creditcard: .05, wrench: .1, fork: .08 } }],
+    decoys: ['sponge', 'pillow', 'balloon', 'banana', 'thread', 'egg'] },
+  { t: 'Rain, and a long walk to the car', d: 'Your laptop bag is not waterproof.',
+    needs: [{ n: 'something waterproof to cover the bag', fix: { umbrella: .6, bag: .25, foil: .02 } }],
+    decoys: ['towel', 'newspaper', 'scarf', 'box', 'envelope', 'blanket'] },
+  { t: 'A screw that keeps spinning', d: 'The hole is stripped and the screw just turns in place.',
+    needs: [{ n: 'something to pack the hole so the screw grips', fix: { toothpick: .45, matchbook: .15 } }],
+    decoys: ['honey', 'butter', 'ice', 'oil', 'sponge', 'balloon'] },
+  { t: 'Glasses smeared, no cloth', d: 'You\'re in a restaurant and can\'t see the menu.',
+    needs: [{ n: 'something soft and lint-free to wipe them', fix: { napkin: .4, scarf: .15, sock: .05 } }],
+    decoys: ['sandpaper', 'butter', 'bread', 'receipt', 'newspaper', 'sponge'] },
+  { t: 'A note that won\'t stay on the fridge', d: 'The only magnet broke and the note keeps sliding down.',
+    needs: [{ n: 'something to hold paper to a fridge door', fix: { tape: .45, magnet: .3, binderclip: .05 } }],
+    decoys: ['egg', 'butter', 'pushpin', 'paperclip', 'string', 'coin'] },
+  { t: 'Cookies going stale overnight', d: 'Half a batch of soft cookies and an open tin.',
+    needs: [{ n: 'something that keeps them soft by sharing its moisture', fix: { bread: .15 } },
+            { n: 'a container you can close', fix: { jar: .3, box: .15, bag: .35 } }],
+    decoys: ['salt', 'rice', 'ice', 'towel', 'sponge'] },
+  { t: 'Kids want a nightlight', d: 'Power cut and the smallest one won\'t sleep in total darkness.',
+    needs: [{ n: 'a light that can stay on safely', fix: { phone: .6, laptop: .1 } },
+            { n: 'something to soften the glare', fix: { waterbottle: .08, glass: .1, tp: .05, sock: .05 } }],
+    decoys: ['candle', 'mirror', 'foil', 'battery'] },
+  { t: 'A mouse cord too short to reach', d: 'The cable won\'t reach the desk edge without dragging.',
+    needs: [{ n: 'something to clip the cable to the desk edge', fix: { binderclip: .45, clothespin: .2, tape: .3 } }],
+    decoys: ['honey', 'string', 'magnet', 'coin', 'ice', 'egg'] },
+  { t: 'Bananas going brown too fast', d: 'Bought green on Monday, spotty by Wednesday.',
+    needs: [{ n: 'something to wrap the stems and slow ripening', fix: { foil: .2, bag: .3, tape: .1 } }],
+    decoys: ['salt', 'sponge', 'towel', 'mug', 'honey', 'coin'] },
+  { t: 'Soggy sandwich by lunchtime', d: 'You make it at 7 a.m. and the bread is wet by noon.',
+    needs: [{ n: 'a moisture barrier between the filling and the bread', fix: { butter: .3 } },
+            { n: 'something to wrap it in', fix: { foil: .35, bag: .3, papertowel: .1 } }],
+    decoys: ['sponge', 'honey', 'ice', 'salt', 'oil'] },
+  { t: 'Sticky splinter in your thumb', d: 'Tiny, close to the surface, and you have no tweezers.',
+    needs: [{ n: 'something sticky to lift it out', fix: { tape: .45 } },
+            { n: 'something to press or nudge it free', fix: { creditcard: .15, safetypin: .3 } }],
+    decoys: ['butter', 'honey', 'cork', 'pen', 'sponge'] },
+  { t: 'Speaker too quiet for the party', d: 'A phone playing music is getting drowned out.',
+    needs: [{ n: 'something hollow to amplify the sound', fix: { mug: .2, glass: .3, bowl: .25, tp: .05 } }],
+    decoys: ['towel', 'pillow', 'blanket', 'sock', 'scarf', 'sponge'] },
+  { t: 'Leftover pizza tastes like cardboard', d: 'The microwave makes it rubbery.',
+    needs: [{ n: 'something to heat it in', fix: { frypan: .5 } },
+            { n: 'a little water to steam the cheese', fix: { ice: .15, glass: .15 } }],
+    decoys: ['towel', 'foil', 'sponge', 'plate', 'butter'] }
+];
+
+// Jury Rig core: daily selection, shelves, scoring.
+var JURY = (function () {
+  function seedHash(str) { var h = 1779033703 ^ str.length; for (var i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; }
+  function rng(seed) { var a = seedHash(seed); return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function shuffle(R, a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(R() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  var PER_DAY = 4, SHELF = 8, MAX_PICK = 3;
+  var LAUNCH = Date.UTC(2026, 10, 5);
+  function dayNumber(ymd) { var p = ymd.split('-'); return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - LAUNCH) / 86400000) + 1; }
+
+  // problems cycle through a seeded order so none repeats until the pool is used up
+  function problemsFor(ymd) {
+    var n = Math.max(1, dayNumber(ymd)) - 1, len = JR_PROBLEMS.length;
+    var out = [];
+    for (var k = 0; k < PER_DAY; k++) {
+      var slot = n * PER_DAY + k, cycle = Math.floor(slot / len);
+      var order = shuffle(rng('jr-cycle-' + cycle), JR_PROBLEMS.map(function (_, i) { return i; }));
+      out.push(order[slot % len]);
+    }
+    return out;
+  }
+  function shelfFor(ymd, pi) {
+    var p = JR_PROBLEMS[pi], R = rng('jr-shelf-' + ymd + '-' + pi);
+    var valid = {};
+    p.needs.forEach(function (nd) { Object.keys(nd.fix).forEach(function (id) { valid[id] = 1; }); });
+    var ids = Object.keys(valid);
+    if (ids.length > 5) {
+      // always keep the most obvious and the least obvious fix for each need, then fill at random
+      var keep = {};
+      p.needs.forEach(function (nd) {
+        var ks = Object.keys(nd.fix).sort(function (a, b) { return nd.fix[b] - nd.fix[a]; });
+        keep[ks[0]] = 1; keep[ks[ks.length - 1]] = 1;
+      });
+      var rest = shuffle(R, ids.filter(function (id) { return !keep[id]; }));
+      ids = Object.keys(keep).concat(rest).slice(0, 5);
+    }
+    var decoys = shuffle(R, p.decoys.filter(function (d) { return !valid[d]; }));
+    var shelf = ids.concat(decoys).slice(0, SHELF);
+    return shuffle(R, shelf);
+  }
+  function makeDay(ymd) {
+    return problemsFor(ymd).map(function (pi) { return { pi: pi, problem: JR_PROBLEMS[pi], shelf: shelfFor(ymd, pi) }; });
+  }
+  // score a pick of item ids against a problem
+  function score(problem, picks) {
+    var covered = [], used = {};
+    var needScores = problem.needs.map(function (nd) {
+      var best = null;
+      picks.forEach(function (id) { if (nd.fix[id] !== undefined && (best === null || nd.fix[id] < nd.fix[best])) best = id; });
+      if (best !== null) used[best] = 1;
+      picks.forEach(function (id) { if (nd.fix[id] !== undefined) used[id] = 1; });
+      return best === null ? null : { item: best, o: nd.fix[best] };
+    });
+    var failed = needScores.map(function (x, i) { return x === null ? i : -1; }).filter(function (i) { return i >= 0; });
+    var wasted = picks.filter(function (id) { return !used[id]; });
+    if (failed.length) return { works: false, points: 0, failed: failed, wasted: wasted, needs: needScores };
+    var mean = needScores.reduce(function (s, x) { return s + (1 - x.o); }, 0) / needScores.length;
+    var pts = Math.max(5, Math.round(100 * mean) - 15 * wasted.length);
+    return { works: true, points: pts, failed: [], wasted: wasted, needs: needScores, tier: tierFor(pts) };
+  }
+  var TIERS = [{ min: 90, name: 'Legend' }, { min: 70, name: 'MacGyver' }, { min: 45, name: 'Handy' }, { min: 0, name: 'Duct tape' }];
+  function tierFor(p) { for (var i = 0; i < TIERS.length; i++) if (p >= TIERS[i].min) return TIERS[i]; return TIERS[3]; }
+  function goTo(need) { return Object.keys(need.fix).sort(function (a, b) { return need.fix[b] - need.fix[a]; })[0]; }
+  return { PER_DAY: PER_DAY, MAX_PICK: MAX_PICK, makeDay: makeDay, score: score, goTo: goTo, dayNumber: dayNumber, tierFor: tierFor };
+})();
+
+
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var CONFIG = { siteUrl: 'https://max444444444.github.io/fringe/juryrig/', goatcounter: '/*GOATCOUNTER*/' };
+  if (CONFIG.siteUrl.indexOf('/*') === 0) CONFIG.siteUrl = '';
+  if (CONFIG.goatcounter.indexOf('/*') === 0) CONFIG.goatcounter = '';
+  var J = JURY, $ = function (id) { return document.getElementById(id); };
+  function track(n) { try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'event-' + n, title: n, event: true }); } catch (e) {} }
+  if (CONFIG.goatcounter) { var g = document.createElement('script'); g.async = true; g.src = 'https://gc.zgo.at/count.js'; g.setAttribute('data-goatcounter', 'https://' + CONFIG.goatcounter + '.goatcounter.com/count'); document.head.appendChild(g); }
+  var KEY = 'juryrig:v1', store;
+  try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { store = {}; }
+  store.days = store.days || {};
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  function ymdOf(d) { var m = d.getMonth() + 1, x = d.getDate(); return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (x < 10 ? '0' : '') + x; }
+  var today = ymdOf(new Date()), no = J.dayNumber(today), day = J.makeDay(today);
+  var dateTxt = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  $('meta').textContent = 'No. ' + no + ' · ' + dateTxt;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function item(id) { return JR_ITEMS[id]; }
+  function lower(id) { return item(id)[1].charAt(0).toLowerCase() + item(id)[1].slice(1); }
+
+  var ds = store.days[today] = store.days[today] || { picks: [] };
+  var idx = 0, picks = [], tested = false;
+
+  function show(id) { ['intro', 'play', 'summary'].forEach(function (s) { $(s).hidden = s !== id; }); }
+  function renderJob() {
+    var job = day[idx], p = job.problem;
+    picks = []; tested = false;
+    $('jobNo').textContent = 'Job ' + (idx + 1) + ' of ' + day.length;
+    var total = ds.picks.reduce(function (s, pk, i) { return s + J.score(day[i].problem, pk).points; }, 0);
+    $('jobScore').textContent = total + ' pts so far';
+    $('jobTitle').textContent = p.t; $('jobDesc').textContent = p.d;
+    $('needs').innerHTML = p.needs.map(function (n) { return '<li>' + esc(n.n) + '</li>'; }).join('');
+    $('verdict').hidden = true; $('bench').hidden = false;
+    $('hooks').innerHTML = job.shelf.map(function (id) {
+      var it = item(id);
+      return '<li><button class="item" data-id="' + id + '" aria-pressed="false"><span class="emo" aria-hidden="true">' + (it[0] || '') + '</span><span class="nm">' + esc(it[1]) + '</span></button></li>';
+    }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('.item'), function (b) { b.addEventListener('click', function () { toggle(b.getAttribute('data-id')); }); });
+    renderBench();
+    window.scrollTo(0, 0);
+  }
+  function toggle(id) {
+    if (tested) return;
+    var k = picks.indexOf(id);
+    if (k >= 0) picks.splice(k, 1); else if (picks.length < J.MAX_PICK) picks.push(id); else { toast('The bench holds three things. Put one back first.'); return; }
+    renderBench();
+  }
+  function renderBench() {
+    Array.prototype.forEach.call(document.querySelectorAll('.item'), function (b) { b.setAttribute('aria-pressed', String(picks.indexOf(b.getAttribute('data-id')) >= 0)); b.disabled = tested; });
+    var h = '';
+    for (var i = 0; i < J.MAX_PICK; i++) h += picks[i] ? '<div class="slot full">' + esc(item(picks[i])[1]) + '</div>' : '<div class="slot">empty</div>';
+    $('slots').innerHTML = h;
+    $('testBtn').disabled = !picks.length || tested;
+    $('benchHint').textContent = picks.length ? picks.length + ' of 3 on the bench' : 'Pick up to three things.';
+  }
+  $('testBtn').addEventListener('click', function () {
+    if (!picks.length || tested) return;
+    tested = true;
+    if (idx === 0 && !ds.picks.length) track('start');
+    ds.picks[idx] = picks.slice(); save();
+    reveal(J.score(day[idx].problem, picks), day[idx].problem);
+  });
+  function reveal(res, p) {
+    renderBench(); $('bench').hidden = true;
+    var lis = $('needs').children;
+    p.needs.forEach(function (n, i) { lis[i].className = res.needs[i] ? 'ok' : 'no'; });
+    $('stamp').className = 'stamp ' + (res.works ? 'ok' : 'no');
+    $('stamp').textContent = res.works ? 'It holds' : 'Didn\'t hold';
+    if (res.works) {
+      var w = res.wasted.length ? ' ' + res.wasted.length + ' useless extra' + (res.wasted.length > 1 ? 's' : '') + ' cost ' + (15 * res.wasted.length) + '.' : '';
+      $('pts').innerHTML = '<b>' + res.points + '</b> points · ' + res.tier.name + '.' + esc(w);
+    } else {
+      $('pts').innerHTML = '<b>0</b> points. Nothing on the bench covers: ' + esc(res.failed.map(function (i) { return p.needs[i].n; }).join('; ')) + '.';
+    }
+    $('goto').textContent = 'What most people grab: ' + p.needs.map(function (n) { var g = J.goTo(n); return lower(g) + ' (about ' + Math.round(n.fix[g] * 100) + '%)'; }).join(' and ') + '.';
+    var shelf = day[idx].shelf;
+    $('others').textContent = 'Fixes on this board that work: ' + p.needs.map(function (n) {
+      return Object.keys(n.fix).filter(function (id) { return shelf.indexOf(id) >= 0; }).sort(function (a, b) { return n.fix[a] - n.fix[b]; }).map(lower).join(', ');
+    }).join(' / ') + '.';
+    $('nextBtn').textContent = idx < day.length - 1 ? 'Next job' : 'See the work order';
+    $('verdict').hidden = false;
+    $('verdict').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  }
+  $('nextBtn').addEventListener('click', function () { if (idx < day.length - 1) { idx++; renderJob(); } else finish(); });
+  function finish() {
+    var rows = day.map(function (job, i) { return { job: job, pk: ds.picks[i], res: J.score(job.problem, ds.picks[i]) }; });
+    var total = rows.reduce(function (s, r) { return s + r.res.points; }, 0);
+    if (!ds.done) { ds.done = 1; ds.total = total; save(); track('finish'); }
+    show('summary');
+    $('orderNo').textContent = 'Work order No. ' + no; $('orderDate').textContent = dateTxt;
+    var best = rows.filter(function (r) { return r.res.works; }).sort(function (a, b) { return b.res.points - a.res.points; })[0];
+    $('orderTitle').textContent = total >= 300 ? 'Signed off by a legend.' : total >= 200 ? 'Solid work. The house still stands.' : total > 0 ? 'Some of it held.' : 'Call a professional.';
+    $('orderTable').innerHTML = rows.map(function (r) {
+      return '<tr><td>' + esc(r.job.problem.t) + '<br><span class="note">' + esc(r.pk.map(lower).join(' + ')) + '</span></td><td class="n">' + (r.res.works ? r.res.points : '0') + '</td></tr>';
+    }).join('') + '<tr class="total"><td>Total</td><td class="n">' + total + ' / ' + (day.length * 100) + '</td></tr>';
+    var sq = rows.map(function (r) { return !r.res.works ? '🟥' : r.res.points >= 90 ? '🟨' : r.res.points >= 70 ? '🟩' : r.res.points >= 45 ? '🟦' : '⬜'; }).join('');
+    $('shareText').textContent = 'Jury Rig No. ' + no + ' · ' + total + '/' + (day.length * 100) + '\n' + sq + (best ? '\nCleverest fix: ' + best.res.needs.map(function (x) { return lower(x.item); }).join(' + ') + ' for "' + best.job.problem.t.toLowerCase() + '"' : '') + (CONFIG.siteUrl ? '\n' + CONFIG.siteUrl : '');
+    var done = Object.keys(store.days).filter(function (k) { return store.days[k].done; });
+    var streak = 0, d = new Date(); while (store.days[ymdOf(d)] && store.days[ymdOf(d)].done) { streak++; d.setDate(d.getDate() - 1); }
+    $('streak').textContent = 'Days played: ' + done.length + '. Streak: ' + streak + '. New jobs at midnight, your time. Go-to percentages are our estimates, not a survey.';
+  }
+  $('shareBtn').addEventListener('click', function () {
+    var t = $('shareText').textContent; track('share');
+    var fb = function () { var r = document.createRange(); r.selectNodeContents($('shareText')); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); toast('Selected. Copy it to share.'); };
+    try { navigator.clipboard.writeText(t).then(function () { toast('Copied'); }, fb); } catch (e) { fb(); }
+  });
+  var tt = 0; function toast(m) { var t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(function () { t.hidden = true; }, 1900); }
+  $('startBtn').addEventListener('click', function () { begin(); });
+  function begin() {
+    if (ds.done || ds.picks.length >= day.length) { finish(); return; }
+    show('play'); idx = ds.picks.length; renderJob();
+  }
+  if (ds.done || ds.picks.length) begin();
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ymdOf(new Date()) !== today) location.reload(); });
+})();
+</script>
+</body></html>

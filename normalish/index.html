@@ -1,0 +1,345 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><meta property="og:title" content="Normalish"><meta property="og:description" content="Five everyday habits a day. Say what you actually do, guess how many people do the same, and find out how normal you are."></head><body><title>Normalish</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Five everyday habits a day. Say what you actually do, guess how many people do the same, and find out how normal you are.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Libre+Franklin:wght@400;600;800&family=Staatliches&display=swap">
+<style>
+/* Layout: a printed census-style questionnaire. One form, ruled lines, blue-ink answers, a red rubber stamp. */
+:root {
+  --desk: #c9d4cc; --form: #f1f4ee; --rule: #b9c8bd; --rule-dark: #7f978a; --ink: #1f2b33; --muted: #59686c;
+  --pen: #2a4fa0; --stamp: #c43c32; --bar: #a9bdb1; --bar-you: #2a4fa0;
+  --font-display: "Zilla Slab", Rockwell, Georgia, serif;
+  --font-body: "Libre Franklin", "Franklin Gothic", "Segoe UI", sans-serif;
+  --font-stamp: "Staatliches", "Arial Narrow", Impact, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #1c2422; --form: #26302d; --rule: #3a4945; --rule-dark: #6e8a80; --ink: #e5ece7; --muted: #a2b2ab;
+    --pen: #8fb0ff; --stamp: #ff6f5f; --bar: #46584f; --bar-you: #8fb0ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #1c2422; --form: #26302d; --rule: #3a4945; --rule-dark: #6e8a80; --ink: #e5ece7; --muted: #a2b2ab;
+  --pen: #8fb0ff; --stamp: #ff6f5f; --bar: #46584f; --bar-you: #8fb0ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--desk); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 56px; }
+.form { max-width: 580px; margin: 0 auto; background: var(--form); padding: 22px 20px 26px; position: relative; overflow: hidden; }
+.formhead { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding-bottom: 12px; border-bottom: 3px double var(--rule-dark); }
+.formhead h1 { font-family: var(--font-display); font-weight: 700; font-size: 38px; line-height: 1; margin: 0; letter-spacing: -.01em; }
+.formhead .ref { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.35; font-variant-numeric: tabular-nums; }
+.formhead .sub { grid-column: 1 / -1; font-size: 13px; color: var(--muted); margin: 0; }
+.section-label { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 20px 0 8px; }
+.intro p { margin: 10px 0 0; }
+.qno { font-family: var(--font-display); font-weight: 600; font-size: 15px; color: var(--muted); margin-top: 18px; }
+.qtext { font-family: var(--font-display); font-weight: 700; font-size: 25px; line-height: 1.2; margin: 2px 0 12px; text-wrap: balance; }
+.opts { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.opts li { border-bottom: 1px solid var(--rule); }
+.opt { appearance: none; background: none; border: 0; width: 100%; text-align: left; font: inherit; color: var(--ink); padding: 13px 4px; display: flex; gap: 14px; align-items: center; cursor: pointer; }
+.opt .box { width: 22px; height: 22px; border: 2px solid var(--rule-dark); flex: none; position: relative; }
+.opt[aria-checked="true"] .box::after { content: "✕"; position: absolute; inset: -6px 0 0 1px; color: var(--pen); font: 700 24px/1 var(--font-body); }
+.opt[aria-checked="true"] .label { color: var(--pen); font-weight: 600; }
+.opt:disabled { cursor: default; }
+.opt:focus-visible, .btn:focus-visible, input:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+.guess { margin-top: 20px; display: grid; gap: 8px; }
+.guess label { font-weight: 600; }
+.guessrow { display: flex; align-items: center; gap: 14px; }
+.guessrow input { flex: 1; accent-color: var(--pen); height: 32px; }
+.guessval { font-family: var(--font-display); font-weight: 700; font-size: 30px; color: var(--pen); min-width: 3.2ch; text-align: right; font-variant-numeric: tabular-nums; }
+.btn { appearance: none; border: 2px solid var(--ink); background: var(--ink); color: var(--form); font: 800 16px/1 var(--font-body); padding: 14px 20px; min-height: 48px; cursor: pointer; }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn.alt { background: transparent; color: var(--ink); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+/* reveal */
+.bars { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; }
+.bars li { display: grid; grid-template-columns: minmax(0, 1fr) 3.4em; gap: 4px 10px; align-items: center; font-size: 14.5px; }
+.bars .track { grid-column: 1 / -1; display: block; height: 10px; background: color-mix(in srgb, var(--rule) 60%, transparent); }
+.bars .fill { display: block; height: 100%; background: var(--rule-dark); width: 0; transition: width .7s ease-out; }
+.bars li.you .fill { background: var(--bar-you); }
+.bars li.you .nm { color: var(--pen); font-weight: 600; }
+.bars .pc { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.est { font-size: 12.5px; color: var(--muted); margin: 8px 0 0; }
+.tally { margin-top: 14px; font-size: 15px; }
+.tally b { font-variant-numeric: tabular-nums; }
+.stamp { position: absolute; right: 18px; font-family: var(--font-stamp); color: var(--stamp); border: 4px solid var(--stamp); padding: 4px 12px 2px; font-size: 30px; line-height: 1; letter-spacing: .03em; transform: rotate(-9deg); opacity: .88; pointer-events: none; mix-blend-mode: multiply; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .stamp { mix-blend-mode: normal; } }
+:root[data-theme="dark"] .stamp { mix-blend-mode: normal; }
+@media (prefers-reduced-motion: no-preference) { .stamp.land { animation: land .3s ease-out; } }
+@keyframes land { from { transform: rotate(-9deg) scale(1.7); opacity: 0; } to { transform: rotate(-9deg) scale(1); opacity: .88; } }
+.qwrap { position: relative; }
+/* summary */
+.class { margin-top: 18px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.class .k { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.class .v { font-family: var(--font-display); font-weight: 700; font-size: 32px; line-height: 1.1; color: var(--pen); }
+.class p { margin: 4px 0 0; }
+table.ans { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14.5px; }
+table.ans td { padding: 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.ans td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; font-weight: 600; }
+table.ans .a { color: var(--pen); }
+pre.share { margin: 16px 0 0; padding: 12px; border: 1px dashed var(--rule-dark); font: 500 14px/1.45 ui-monospace, Menlo, monospace; white-space: pre-wrap; user-select: all; }
+.small { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+.toast { position: fixed; left: 16px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--form); padding: 10px 14px; font-size: 14px; z-index: 20; }
+</style>
+
+<main class="form" id="form">
+  <div class="formhead">
+    <h1>Normalish</h1>
+    <div class="ref" id="ref"></div>
+    <p class="sub">A daily survey of the ordinary. Five questions, about three minutes.</p>
+  </div>
+
+  <section class="intro" id="intro">
+    <div class="section-label">Instructions</div>
+    <p>Mark what you actually do. Then guess how many people out of 100 answer the same.</p>
+    <p>You score for being unusual, and for knowing how unusual you are. A rare answer you predicted almost exactly earns a bonus.</p>
+    <div class="actions"><button class="btn" id="startBtn">Begin the survey</button></div>
+  </section>
+
+  <section id="qs" hidden>
+    <div class="qwrap" id="qwrap">
+      <div class="qno" id="qno"></div>
+      <div class="qtext" id="qtext"></div>
+      <ul class="opts" id="opts" role="radiogroup"></ul>
+      <div class="guess" id="guessBox" hidden>
+        <label for="guess">How many people in 100 gave the same answer as you?</label>
+        <div class="guessrow"><input type="range" id="guess" min="1" max="99" value="50"><span class="guessval" id="guessVal">50</span></div>
+      </div>
+      <div id="reveal" hidden>
+        <ul class="bars" id="bars"></ul>
+        <p class="est">Shares are our rounded estimates, not a survey.</p>
+        <div class="tally" id="tally"></div>
+      </div>
+      <span class="stamp" id="stamp" hidden></span>
+    </div>
+    <div class="actions">
+      <button class="btn" id="submitBtn" disabled>Submit answer</button>
+      <button class="btn" id="nextBtn" hidden>Next question</button>
+    </div>
+  </section>
+
+  <section id="summary" hidden>
+    <div class="class">
+      <div class="k">Classification</div>
+      <div class="v" id="clsName"></div>
+      <p id="clsLine"></p>
+    </div>
+    <table class="ans" id="ansTable"></table>
+    <pre class="share" id="shareText"></pre>
+    <div class="actions"><button class="btn" id="shareBtn">Copy result</button></div>
+    <p class="small" id="streak"></p>
+  </section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// Normalish questions. Splits are our rounded estimates of how people answer, not survey data, and the page says so.
+var NM_QUESTIONS = [
+  ['Toilet paper roll: which way?', [['Over the top', 70], ['Underneath', 25], ['I genuinely don\'t care', 5]]],
+  ['Where do your eggs live?', [['Fridge shelf', 55], ['Fridge door', 30], ['On the counter', 13], ['Somewhere stranger', 2]]],
+  ['When do you shower?', [['Morning', 45], ['Evening', 38], ['Whenever, it varies', 12], ['Not every day, and that\'s fine', 5]]],
+  ['Do your socks match?', [['Always a matching pair', 55], ['Close enough', 30], ['Never, on purpose', 15]]],
+  ['Pizza crust:', [['I eat it', 70], ['I leave it', 20], ['I dip it in something', 10]]],
+  ['Where does the ketchup go?', [['Fridge', 75], ['Cupboard', 25]]],
+  ['Where does the bread go?', [['Counter or bread bin', 60], ['Fridge', 25], ['Freezer', 15]]],
+  ['Cereal: what goes in the bowl first?', [['Cereal, then milk', 85], ['Milk, then cereal', 10], ['No milk at all', 5]]],
+  ['Where does your phone sleep?', [['Next to the bed', 70], ['In the bed with me', 15], ['Another room', 10], ['Under the pillow', 5]]],
+  ['Dishwasher cutlery:', [['Handles down', 45], ['Handles up', 35], ['A total mix', 20]]],
+  ['Toothpaste tube:', [['Squeeze from the middle', 55], ['Squeeze from the end', 35], ['Roll it up like a pro', 10]]],
+  ['The snooze button:', [['Never touch it', 35], ['Once', 30], ['Several times, every day', 35]]],
+  ['How many pillows do you sleep with?', [['One', 40], ['Two', 45], ['Three or more', 12], ['None', 3]]],
+  ['You fall asleep on your...', [['Side', 60], ['Back', 25], ['Stomach', 15]]],
+  ['Do you read the last page of a book first?', [['Never', 85], ['Sometimes', 12], ['Always', 3]]],
+  ['Leftover pizza:', [['Microwaved', 40], ['Cold, straight from the fridge', 35], ['Reheated in a pan or oven', 25]]],
+  ['After dinner, the dishes...', [['Get washed straight away', 30], ['Soak until tomorrow', 45], ['Go in the dishwasher', 25]]],
+  ['Do you make your bed?', [['Every morning', 45], ['Sometimes', 30], ['Never', 25]]],
+  ['A bath towel gets washed after...', [['3 or 4 uses', 60], ['One use', 20], ['A week or more', 20]]],
+  ['Packing a suitcase, you...', [['Fold', 55], ['Roll', 40], ['Stuff it all in', 5]]],
+  ['Unknown number calling:', [['Never answer', 60], ['Sometimes answer', 30], ['Always answer', 10]]],
+  ['Your email inbox right now:', [['Thousands unread', 50], ['A few unread', 40], ['Inbox zero', 10]]],
+  ['Parking:', [['Pull straight in', 65], ['Back in', 35]]],
+  ['Shoes at home:', [['Off at the door', 65], ['On', 25], ['Swapped for slippers', 10]]],
+  ['Your coffee:', [['With milk', 40], ['Black', 30], ['Milk and sugar', 20], ['I don\'t drink coffee', 10]]],
+  ['Breakfast:', [['Every day', 55], ['Some days', 25], ['Never', 20]]],
+  ['Do you talk out loud to yourself?', [['Sometimes', 45], ['Often', 40], ['Never', 15]]],
+  ['A sandwich gets cut...', [['Diagonally', 50], ['Straight down the middle', 35], ['Not at all', 15]]],
+  ['Peeling a banana, you start at...', [['The stem', 75], ['The bottom', 20], ['The middle, somehow', 5]]],
+  ['A sandwich cookie:', [['Eat it whole', 45], ['Twist it apart', 35], ['Dunk it', 20]]],
+  ['When you get home, your coat goes...', [['On a hook or hanger', 45], ['Over a chair', 35], ['Wherever it lands', 20]]],
+  ['Replying to texts:', [['Right away', 35], ['Within the hour', 35], ['Days later, sorry', 30]]],
+  ['Grocery shopping:', [['With a list', 55], ['Winging it', 45]]],
+  ['A glass of water by the bed:', [['Every night', 55], ['No', 45]]],
+  ['Browser tabs open right now:', [['Under 5', 40], ['5 to 20', 40], ['More than 20', 20]]],
+  ['Pancakes or waffles?', [['Pancakes', 60], ['Waffles', 40]]],
+  ['Your bananas are best when...', [['Bright yellow', 55], ['Still a bit green', 25], ['Brown and spotty', 20]]],
+  ['Butter lives...', [['In the fridge', 70], ['On the counter', 30]]],
+  ['Your cinema seat:', [['Dead centre', 55], ['On the aisle', 30], ['Back row', 15]]],
+  ['Plane seat:', [['Window', 55], ['Aisle', 40], ['Middle, I like it', 5]]],
+  ['Socks in bed:', [['Never', 60], ['Sometimes', 30], ['Always', 10]]],
+  ['Breakfast for dinner:', [['Sometimes', 55], ['Never', 30], ['Often', 15]]],
+  ['Singing in the shower:', [['Yes', 45], ['Sometimes', 30], ['No', 25]]],
+  ['Ice in your water:', [['Always', 40], ['Sometimes', 30], ['Never', 30]]],
+  ['The microwave timer:', [['I let it beep', 55], ['I stop it before it beeps', 45]]],
+  ['You charge your phone when it hits...', [['About 20%', 50], ['Whenever I\'m near a charger', 35], ['It dies first', 15]]],
+  ['Corn on the cob:', [['Row by row', 40], ['Round and round', 30], ['Cut off the cob', 30]]],
+  ['Light rain, short walk:', [['Hood up, or just get wet', 65], ['Umbrella', 35]]],
+  ['Dinner time:', [['6 to 7 p.m.', 45], ['After 7', 30], ['Before 6', 25]]],
+  ['At the end of a movie:', [['Leave when the credits start', 85], ['Watch all the credits', 15]]],
+  ['Your car or bike keys live...', [['Same hook or bowl, always', 50], ['A different place each time', 35], ['In the bag I\'m using', 15]]],
+  ['Wrapping presents:', [['Paper and tape, properly', 55], ['Gift bags', 35], ['No wrapping at all', 10]]],
+  ['Fridge door open while you decide:', [['Yes, standing there', 50], ['I close it and think', 50]]],
+  ['Your desktop or home screen:', [['Neat and organised', 35], ['Messy but I know where things are', 50], ['Chaos', 15]]],
+  ['A new book: you...', [['Read it in order', 80], ['Skip around', 15], ['Read the ending early', 5]]],
+  ['Sliding a pan of food off the stove, you use...', [['An oven mitt or cloth', 60], ['Bare hands, quickly', 30], ['The pan handle only', 10]]],
+  ['Fries and a milkshake: dip?', [['Never', 55], ['Of course', 30], ['Never tried it', 15]]],
+  ['Hanging laundry:', [['Dryer', 50], ['Rack or line', 40], ['Over every chair', 10]]],
+  ['Your alarm sound:', [['Phone default', 50], ['A song I picked', 30], ['I don\'t use an alarm', 20]]],
+  ['Cleaning the shower:', [['Weekly', 35], ['Every couple of weeks', 35], ['When it looks bad', 30]]]
+];
+
+// Normalish core: daily questions and scoring.
+var NORMAL = (function () {
+  function seedHash(str) { var h = 1779033703 ^ str.length; for (var i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; }
+  function rng(seed) { var a = seedHash(seed); return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function shuffle(R, a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(R() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  var PER_DAY = 5, LAUNCH = Date.UTC(2026, 10, 5);
+  function dayNumber(ymd) { var p = ymd.split('-'); return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - LAUNCH) / 86400000) + 1; }
+  function questionsFor(ymd) {
+    var n = Math.max(1, dayNumber(ymd)) - 1, len = NM_QUESTIONS.length, out = [];
+    for (var k = 0; k < PER_DAY; k++) {
+      var slot = n * PER_DAY + k, cycle = Math.floor(slot / len);
+      var order = shuffle(rng('nm-cycle-' + cycle), NM_QUESTIONS.map(function (_, i) { return i; }));
+      out.push(order[slot % len]);
+    }
+    return out.map(function (i) { return { qi: i, q: NM_QUESTIONS[i][0], options: NM_QUESTIONS[i][1] }; });
+  }
+  // quirk: how unusual your own answer is (0-50). instinct: how well you guessed its share (0-50).
+  function score(question, pick, guess) {
+    var share = question.options[pick][1];
+    var quirk = Math.round(50 * (1 - share / 100));
+    var off = Math.abs(guess - share);
+    var instinct = Math.max(0, Math.round(50 - 2 * off));
+    var called = share <= 20 && off <= 5;
+    var bonus = called ? 15 : 0;
+    return { share: share, quirk: quirk, instinct: instinct, called: called, bonus: bonus, points: quirk + instinct + bonus, off: off };
+  }
+  var TITLES = [
+    { min: 34, name: 'Chaos goblin', line: 'Almost nobody lives like you, and you knew it.' },
+    { min: 26, name: 'Lovable outlier', line: 'Weird in all the right places.' },
+    { min: 18, name: 'Normal-adjacent', line: 'Mostly mainstream, with a few odd habits.' },
+    { min: 0, name: 'Beige normal', line: 'You are the average person. Statistically, a comfort.' }
+  ];
+  function titleFor(avgQuirk) { for (var i = 0; i < TITLES.length; i++) if (avgQuirk >= TITLES[i].min) return TITLES[i]; return TITLES[3]; }
+  return { PER_DAY: PER_DAY, questionsFor: questionsFor, score: score, titleFor: titleFor, dayNumber: dayNumber };
+})();
+
+
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var CONFIG = { siteUrl: 'https://max444444444.github.io/fringe/normalish/', goatcounter: '/*GOATCOUNTER*/' };
+  if (CONFIG.siteUrl.indexOf('/*') === 0) CONFIG.siteUrl = '';
+  if (CONFIG.goatcounter.indexOf('/*') === 0) CONFIG.goatcounter = '';
+  var N = NORMAL, $ = function (id) { return document.getElementById(id); };
+  function track(n) { try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'event-' + n, title: n, event: true }); } catch (e) {} }
+  if (CONFIG.goatcounter) { var g = document.createElement('script'); g.async = true; g.src = 'https://gc.zgo.at/count.js'; g.setAttribute('data-goatcounter', 'https://' + CONFIG.goatcounter + '.goatcounter.com/count'); document.head.appendChild(g); }
+  var KEY = 'normalish:v1', store;
+  try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { store = {}; }
+  store.days = store.days || {};
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  function ymdOf(d) { var m = d.getMonth() + 1, x = d.getDate(); return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (x < 10 ? '0' : '') + x; }
+  var today = ymdOf(new Date()), no = N.dayNumber(today), qs = N.questionsFor(today);
+  $('ref').innerHTML = 'Form No. ' + no + '<br>' + new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var ds = store.days[today] = store.days[today] || { a: [] };
+  var idx = 0, pick = -1, submitted = false;
+  function show(id) { ['intro', 'qs', 'summary'].forEach(function (s) { $(s).hidden = s !== id; }); }
+
+  function renderQ() {
+    var q = qs[idx]; pick = -1; submitted = false;
+    $('qno').textContent = 'Question ' + (idx + 1) + ' of ' + qs.length;
+    $('qtext').textContent = q.q;
+    $('opts').innerHTML = q.options.map(function (o, i) {
+      return '<li><button class="opt" role="radio" aria-checked="false" data-i="' + i + '"><span class="box" aria-hidden="true"></span><span class="label">' + esc(o[0]) + '</span></button></li>';
+    }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (b) { b.addEventListener('click', function () { choose(+b.getAttribute('data-i')); }); });
+    $('guessBox').hidden = true; $('reveal').hidden = true; $('stamp').hidden = true;
+    $('guess').value = 50; $('guess').disabled = false; $('guessVal').textContent = '50';
+    $('submitBtn').hidden = false; $('submitBtn').disabled = true; $('nextBtn').hidden = true;
+    window.scrollTo(0, 0);
+  }
+  function choose(i) {
+    if (submitted) return;
+    pick = i;
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (b) { b.setAttribute('aria-checked', String(+b.getAttribute('data-i') === i)); });
+    $('guessBox').hidden = false; $('submitBtn').disabled = false;
+  }
+  $('guess').addEventListener('input', function () { $('guessVal').textContent = this.value; });
+  $('submitBtn').addEventListener('click', function () {
+    if (pick < 0 || submitted) return;
+    submitted = true;
+    var guess = +$('guess').value;
+    if (idx === 0 && !ds.a.length) track('start');
+    ds.a[idx] = [pick, guess]; save();
+    reveal(qs[idx], pick, guess);
+  });
+  function reveal(q, p, guess) {
+    var r = N.score(q, p, guess);
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (b) { b.disabled = true; });
+    $('guess').disabled = true;
+    $('bars').innerHTML = q.options.map(function (o, i) {
+      return '<li class="' + (i === p ? 'you' : '') + '"><span class="nm">' + esc(o[0]) + (i === p ? ' (you)' : '') + '</span><span class="pc">' + o[1] + '%</span><span class="track"><span class="fill" data-w="' + o[1] + '"></span></span></li>';
+    }).join('');
+    $('reveal').hidden = false;
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.fill'), function (f) { f.style.width = f.getAttribute('data-w') + '%'; });
+    }); });
+    $('tally').innerHTML = 'You guessed <b>' + guess + '</b>; the estimate is <b>' + r.share + '</b>. Quirk <b>' + r.quirk + '</b> + instinct <b>' + r.instinct + '</b>' + (r.called ? ' + <b>15</b> for calling a rare one' : '') + ' = <b>' + r.points + '</b>.';
+    var st = $('stamp');
+    st.textContent = r.share + '% club';
+    st.style.top = ($('reveal').offsetTop - 18) + 'px';
+    st.hidden = false; st.classList.remove('land'); void st.offsetWidth; st.classList.add('land');
+    $('submitBtn').hidden = true; $('nextBtn').hidden = false;
+    $('nextBtn').textContent = idx < qs.length - 1 ? 'Next question' : 'Get your classification';
+    $('nextBtn').focus({ preventScroll: true });
+  }
+  $('nextBtn').addEventListener('click', function () { if (idx < qs.length - 1) { idx++; renderQ(); } else finish(); });
+
+  function finish() {
+    show('summary');
+    var rows = qs.map(function (q, i) { return { q: q, a: ds.a[i], r: N.score(q, ds.a[i][0], ds.a[i][1]) }; });
+    var total = rows.reduce(function (s, x) { return s + x.r.points; }, 0);
+    var avgQuirk = rows.reduce(function (s, x) { return s + x.r.quirk; }, 0) / rows.length;
+    var t = N.titleFor(avgQuirk);
+    if (!ds.done) { ds.done = 1; ds.total = total; ds.title = t.name; save(); track('finish'); }
+    $('clsName').textContent = t.name; $('clsLine').textContent = t.line + ' ' + total + ' points.';
+    $('ansTable').innerHTML = rows.map(function (x) {
+      return '<tr><td>' + esc(x.q.q) + '<br><span class="a">' + esc(x.q.options[x.a[0]][0]) + '</span></td><td class="n">' + x.r.share + '% club<br>' + x.r.points + ' pts</td></tr>';
+    }).join('');
+    var marks = rows.map(function (x) { return x.r.share <= 10 ? '🟥' : x.r.share <= 25 ? '🟧' : x.r.share <= 45 ? '🟨' : '⬜'; }).join('') + rows.map(function (x) { return x.r.called ? ' 🎯' : ''; }).join('');
+    var rarest = rows.slice().sort(function (a, b) { return a.r.share - b.r.share; })[0];
+    $('shareText').textContent = 'Normalish No. ' + no + ' · ' + total + '\n' + t.name + '\n' + marks + '\nRarest: the ' + rarest.r.share + '% club' + (CONFIG.siteUrl ? '\n' + CONFIG.siteUrl : '');
+    var done = Object.keys(store.days).filter(function (k) { return store.days[k].done; });
+    var streak = 0, d = new Date(); while (store.days[ymdOf(d)] && store.days[ymdOf(d)].done) { streak++; d.setDate(d.getDate() - 1); }
+    $('streak').textContent = 'Forms completed: ' + done.length + '. Streak: ' + streak + '. A new form arrives at midnight, your time. Shares are our rounded estimates, not survey data.';
+    window.scrollTo(0, 0);
+  }
+  $('shareBtn').addEventListener('click', function () {
+    var t = $('shareText').textContent; track('share');
+    var fb = function () { var r = document.createRange(); r.selectNodeContents($('shareText')); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); toast('Selected. Copy it to share.'); };
+    try { navigator.clipboard.writeText(t).then(function () { toast('Copied'); }, fb); } catch (e) { fb(); }
+  });
+  var tt = 0; function toast(m) { var t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(function () { t.hidden = true; }, 1900); }
+  function begin() { if (ds.done || ds.a.length >= qs.length) { finish(); return; } show('qs'); idx = ds.a.length; renderQ(); }
+  $('startBtn').addEventListener('click', begin);
+  if (ds.done || ds.a.length) begin();
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ymdOf(new Date()) !== today) location.reload(); });
+})();
+</script>
+</body></html>

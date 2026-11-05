@@ -1,0 +1,330 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><meta property="og:title" content="Counterweight"><meta property="og:description" content="Five mystery weights a day. Balance each one using things from around the house, by feel alone."></head><body><title>Counterweight</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Five mystery weights a day. Balance each one using things from around the house, by feel alone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Familjen+Grotesk:wght@400;600;700&display=swap">
+<style>
+/* Layout: an old shop's balance scale against a green enamel wall. The scale is the hero; the shelf of household items sits under it; the result prints as a weigh ticket. */
+:root {
+  --wall: #d3e3d8; --enamel: #eef3ee; --ink: #1f342b; --muted: #557064; --brass: #a87f33; --brass-dark: #7d5d22;
+  --needle: #b83a2b; --pan: #c9d4cc; --good: #2d7a4a; --ticket: #f6f4ec;
+  --font-display: "Alfa Slab One", Rockwell, Georgia, serif;
+  --font-body: "Familjen Grotesk", "Trebuchet MS", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --wall: #15231d; --enamel: #1f3029; --ink: #e3ece6; --muted: #9db3a8; --pan: #33463e; --brass: #c79b4a; --brass-dark: #a4803b; --needle: #e0644f; --good: #5cc48a; --ticket: #f2efe5; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --wall: #15231d; --enamel: #1f3029; --ink: #e3ece6; --muted: #9db3a8; --pan: #33463e; --brass: #c79b4a; --brass-dark: #a4803b; --needle: #e0644f; --good: #5cc48a; --ticket: #f2efe5; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--wall); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 56px; }
+.wrap { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header.top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
+.wordmark { font-family: var(--font-display); font-size: 30px; line-height: 1; }
+.meta { font-size: 12.5px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lede { margin: 0; }
+.lede + .lede { margin-top: 8px; }
+.round { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.round h2 { font-size: 22px; line-height: 1.2; margin: 0; font-weight: 700; text-wrap: balance; }
+.round .rno { font-size: 13px; color: var(--muted); white-space: nowrap; font-weight: 600; }
+svg#scale { display: block; width: 100%; height: auto; }
+.reading { min-height: 1.5em; font-weight: 600; margin: 0; }
+.reading b { font-variant-numeric: tabular-nums; }
+.shelf { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 520px) { .shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tagbtn { appearance: none; width: 100%; font: inherit; color: var(--ink); text-align: left; cursor: pointer; background: var(--enamel); border: 1.5px solid var(--ink); border-radius: 3px 14px 14px 3px; padding: 10px 12px 10px 24px; position: relative; display: flex; align-items: center; gap: 8px; min-height: 56px; }
+.tagbtn::before { content: ""; position: absolute; left: 8px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--wall); }
+.tagbtn .e { font-size: 24px; line-height: 1; }
+.tagbtn .n { font-size: 14px; font-weight: 600; line-height: 1.2; min-width: 0; }
+.tagbtn .kg { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tagbtn[aria-pressed="true"] { background: var(--ink); color: var(--enamel); }
+.tagbtn[aria-pressed="true"] .kg { color: inherit; }
+.tagbtn:disabled { cursor: default; }
+.tagbtn.best { outline: 3px solid var(--brass); outline-offset: 1px; }
+.tagbtn:focus-visible, .btn:focus-visible { outline: 3px solid var(--needle); outline-offset: 2px; }
+.controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.controls .hint { font-size: 14px; color: var(--muted); }
+.btn { appearance: none; border: 0; background: var(--ink); color: var(--enamel); font: 700 16px/1 var(--font-body); padding: 14px 20px; min-height: 48px; cursor: pointer; border-radius: 3px; }
+.btn:disabled { opacity: .4; cursor: default; }
+.note { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+/* weigh ticket */
+.ticket { background: var(--ticket); color: #1f2a24; max-width: 380px; padding: 18px 18px 22px; font-size: 15px; position: relative;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), 96% 100%, 92% calc(100% - 8px), 88% 100%, 84% calc(100% - 8px), 80% 100%, 76% calc(100% - 8px), 72% 100%, 68% calc(100% - 8px), 64% 100%, 60% calc(100% - 8px), 56% 100%, 52% calc(100% - 8px), 48% 100%, 44% calc(100% - 8px), 40% 100%, 36% calc(100% - 8px), 32% 100%, 28% calc(100% - 8px), 24% 100%, 20% calc(100% - 8px), 16% 100%, 12% calc(100% - 8px), 8% 100%, 4% calc(100% - 8px), 0 100%); }
+.ticket h2 { font-family: var(--font-display); font-weight: 400; font-size: 24px; margin: 0; }
+.ticket .sub { font-size: 13px; color: #5b6b62; margin: 2px 0 10px; }
+.ticket table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ticket td { padding: 6px 0; border-bottom: 1px dashed #b9c2bb; vertical-align: top; }
+.ticket td.n { text-align: right; white-space: nowrap; padding-left: 10px; font-weight: 700; }
+.ticket tr.total td { border-bottom: 0; padding-top: 10px; font-size: 17px; font-weight: 700; }
+.ticket pre { margin: 12px 0 0; font: 500 13.5px/1.45 ui-monospace, Menlo, monospace; white-space: pre-wrap; user-select: all; background: #ebe8dd; padding: 10px; }
+.ticket .btn { margin-top: 12px; background: #1f342b; color: #eef3ee; }
+.ticket .note { color: #5b6b62; }
+.toast { position: fixed; left: 16px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--enamel); padding: 10px 14px; font-size: 14px; z-index: 20; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="wordmark">Counterweight</div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section id="intro" style="display:flex;flex-direction:column;gap:12px">
+    <p class="lede">Something mystery-heavy sits on the left pan. Put up to three things from the shelf on the right pan to balance it. No numbers until you weigh.</p>
+    <p class="lede">The closer you get, the more you score. Five rounds, from light to heavy.</p>
+    <div><button class="btn" id="startBtn">Open the shop</button></div>
+  </section>
+
+  <section id="play" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="round"><h2 id="loadName"></h2><span class="rno" id="rno"></span></div>
+    <svg id="scale" viewBox="0 0 600 300" role="img" aria-label="A balance scale"></svg>
+    <p class="reading" id="reading"></p>
+    <ul class="shelf" id="shelf"></ul>
+    <div class="controls" id="controls"><span class="hint" id="hint">Pick up to three.</span><button class="btn" id="weighBtn" disabled>Weigh it</button></div>
+    <div id="after" hidden>
+      <p class="note" id="facts"></p>
+      <p class="note" id="bestLine"></p>
+      <div style="margin-top:12px"><button class="btn" id="nextBtn">Next round</button></div>
+    </div>
+  </section>
+
+  <section class="ticket" id="summary" hidden>
+    <h2>Weigh ticket</h2>
+    <div class="sub" id="tSub"></div>
+    <table id="tTable"></table>
+    <pre id="shareText"></pre>
+    <button class="btn" id="shareBtn">Copy result</button>
+    <p class="note" id="streak" style="margin-top:12px"></p>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// Counterweight core. Masses are typical or regulation values in kg; the page says "about" for anything that varies.
+var CW = (function () {
+  function seedHash(str) { var h = 1779033703 ^ str.length; for (var i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); } h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; }
+  function rng(seed) { var a = seedHash(seed); return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function shuffle(R, a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(R() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  var LAUNCH = Date.UTC(2026, 10, 5);
+  function dayNumber(ymd) { var p = ymd.split('-'); return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - LAUNCH) / 86400000) + 1; }
+
+  // [emoji, name, kg, note]
+  var ITEMS = [
+    ['🪙', 'US penny', 0.0025], ['🔋', 'AA battery', 0.023], ['⛳', 'Golf ball', 0.046], ['🎾', 'Tennis ball', 0.058], ['🥚', 'Large egg', 0.057],
+    ['🧈', 'Stick of butter', 0.113], ['⚾', 'Baseball', 0.145], ['📱', 'Smartphone', 0.2], ['🥫', 'Can of soup', 0.4], ['⚽', 'Soccer ball', 0.43],
+    ['🏀', 'Basketball', 0.62], ['💧', 'Litre of water', 1.0], ['🍷', 'Full wine bottle', 1.25], ['💻', 'Laptop', 1.6], ['🥤', '2-litre soda', 2.1],
+    ['🌾', '5 lb bag of flour', 2.27], ['🧱', 'House brick', 2.3], ['🥛', 'Gallon of milk', 3.9], ['🐈', 'House cat', 4.5], ['🎳', 'Bowling ball', 6.4],
+    ['🛞', 'Car tyre', 10], ['🍚', '25 lb bag of rice', 11.3], ['🏋️', '16 kg kettlebell', 16], ['🐕', '40 lb bag of dog food', 18.1], ['🚰', 'Full 5-gallon water jug', 19.5]
+  ];
+  var LOADS = [
+    ['🥚', 'An ostrich egg', 1.4, 'Typical ostrich eggs weigh about 1.4 kg'],
+    ['🥤', 'A 2-litre bottle of soda', 2.1, 'Two litres of soda plus the bottle'],
+    ['👶', 'A newborn baby', 3.4, 'The average full-term newborn is about 3.4 kg'],
+    ['🎳', 'A bowling ball', 6.4, 'A common 14 lb ball'],
+    ['⚫', 'A men\'s shot put', 7.26, 'Regulation weight is exactly 7.26 kg'],
+    ['🥇', 'A gold bar', 12.4, 'A standard 400 troy-ounce bank bar'],
+    ['🔥', 'A full 20 lb propane tank', 17, 'About 8 kg of tank plus 9 kg of propane'],
+    ['🏋️', 'An Olympic barbell', 20, 'A men\'s competition bar is exactly 20 kg'],
+    ['🧳', 'A checked bag at the 50 lb limit', 22.7, '50 lb is 22.7 kg'],
+    ['🧊', 'A cubic foot of water', 28.3, 'One cubic foot holds 28.3 litres'],
+    ['🐕', 'A Labrador retriever', 30, 'Adult Labs are typically 25 to 36 kg'],
+    ['🥤', 'A 12-pack of soda cans', 4.6, 'Twelve 355 ml cans at about 380 g each, plus the box'],
+    ['🍷', 'A case of 12 wine bottles', 15.5, 'Twelve full 750 ml bottles plus the box']
+  ];
+  var ROUNDS = 5, SHELF = 8, MAX_PICK = 3;
+
+  function bestCombo(load, shelf) {
+    var best = null;
+    function consider(idx) {
+      var m = idx.reduce(function (s, i) { return s + shelf[i][2]; }, 0);
+      var err = Math.abs(Math.log(m / load));
+      if (!best || err < best.err) best = { idx: idx.slice(), mass: m, err: err };
+    }
+    for (var a = 0; a < shelf.length; a++) {
+      consider([a]);
+      for (var b = a + 1; b < shelf.length; b++) {
+        consider([a, b]);
+        for (var c = b + 1; c < shelf.length; c++) consider([a, b, c]);
+      }
+    }
+    return best;
+  }
+  function makeRound(R, load) {
+    for (var t = 0; t < 600; t++) {
+      // mostly items lighter than the load, a couple heavier as traps
+      var pool = shuffle(R, ITEMS.filter(function (it) { return Math.abs(Math.log(it[2] / load[2])) > 0.12 && it[2] < load[2] * 2.5; }));
+      if (pool.length < SHELF) pool = shuffle(R, ITEMS.filter(function (it) { return Math.abs(Math.log(it[2] / load[2])) > 0.12; }));
+      var shelf = pool.slice(0, SHELF);
+      // no two shelf items within 10% of each other, so each one reads as different
+      var ok = true;
+      for (var i = 0; i < shelf.length && ok; i++) for (var j = i + 1; j < shelf.length; j++) if (Math.abs(Math.log(shelf[i][2] / shelf[j][2])) < 0.1) { ok = false; break; }
+      if (!ok) continue;
+      var best = bestCombo(load[2], shelf);
+      if (best.err > 0.04) continue;          // a near-perfect balance must exist
+      if (best.idx.length < 2) continue;      // and it takes more than one item
+      return { load: load, shelf: shelf, best: best };
+    }
+    return null;
+  }
+  function makeDay(ymd) {
+    var R = rng('cw:' + ymd);
+    var loads = shuffle(R, LOADS).slice(0, ROUNDS).sort(function (a, b) { return a[2] - b[2]; });
+    return loads.map(function (l, k) { return makeRound(rng('cw:' + ymd + ':' + k), l); });
+  }
+  function score(round, picks) {
+    var m = picks.reduce(function (s, i) { return s + round.shelf[i][2]; }, 0);
+    if (!m) return { mass: 0, ratio: 0, points: 0, off: 1, level: false };
+    var err = Math.abs(Math.log(m / round.load[2]));
+    var points = Math.round(100 * Math.exp(-err / 0.2));
+    return { mass: m, ratio: m / round.load[2], points: points, off: m / round.load[2] - 1, level: err <= 0.02 };
+  }
+  function fmt(kg) {
+    var lb = kg * 2.20462;
+    if (kg < 1) return Math.round(kg * 1000) + ' g (' + (lb * 16).toFixed(lb * 16 < 10 ? 1 : 0) + ' oz)';
+    return (kg < 10 ? kg.toFixed(kg < 3 ? 2 : 1) : Math.round(kg)) + ' kg (' + (lb < 10 ? lb.toFixed(1) : Math.round(lb)) + ' lb)';
+  }
+  return { ROUNDS: ROUNDS, MAX_PICK: MAX_PICK, makeDay: makeDay, score: score, fmt: fmt, dayNumber: dayNumber };
+})();
+
+
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var CONFIG = { siteUrl: 'https://max444444444.github.io/fringe/counterweight/', goatcounter: '/*GOATCOUNTER*/' };
+  if (CONFIG.siteUrl.indexOf('/*') === 0) CONFIG.siteUrl = '';
+  if (CONFIG.goatcounter.indexOf('/*') === 0) CONFIG.goatcounter = '';
+  var $ = function (id) { return document.getElementById(id); };
+  function track(n) { try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'event-' + n, title: n, event: true }); } catch (e) {} }
+  if (CONFIG.goatcounter) { var g = document.createElement('script'); g.async = true; g.src = 'https://gc.zgo.at/count.js'; g.setAttribute('data-goatcounter', 'https://' + CONFIG.goatcounter + '.goatcounter.com/count'); document.head.appendChild(g); }
+  var KEY = 'counterweight:v1', store;
+  try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { store = {}; }
+  store.days = store.days || {};
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  function ymdOf(d) { var m = d.getMonth() + 1, x = d.getDate(); return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (x < 10 ? '0' : '') + x; }
+  var today = ymdOf(new Date()), no = CW.dayNumber(today), day = CW.makeDay(today);
+  var dateTxt = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  $('meta').innerHTML = 'Weigh-in No. ' + no + '<br>' + dateTxt;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var ds = store.days[today] = store.days[today] || { a: [] };
+  var idx = 0, picks = [], weighed = false;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function show(id) { ['intro', 'play', 'summary'].forEach(function (s) { $(s).hidden = s !== id; }); }
+
+  // ---- the scale ----
+  function scaleSVG(round, sel, angle) {
+    var load = round.load, right = sel.map(function (i) { return round.shelf[i][0]; }).join(' ');
+    var a = angle || 0, cx = 300, cy = 92, L = 210;
+    var rad = a * Math.PI / 180, dx = Math.cos(rad) * L, dy = Math.sin(rad) * L;
+    var lx = cx - dx, ly = cy - dy, rx = cx + dx, ry = cy + dy;
+    function pan(x, y, content, size) {
+      return '<line x1="' + x + '" y1="' + y + '" x2="' + (x - 62) + '" y2="' + (y + 92) + '" stroke="var(--brass-dark)" stroke-width="2"/>' +
+        '<line x1="' + x + '" y1="' + y + '" x2="' + (x + 62) + '" y2="' + (y + 92) + '" stroke="var(--brass-dark)" stroke-width="2"/>' +
+        '<path d="M' + (x - 80) + ' ' + (y + 92) + ' Q' + x + ' ' + (y + 132) + ' ' + (x + 80) + ' ' + (y + 92) + ' Z" fill="var(--pan)" stroke="var(--brass-dark)" stroke-width="2.5"/>' +
+        '<text x="' + x + '" y="' + (y + 86) + '" font-size="' + size + '" text-anchor="middle">' + content + '</text>';
+    }
+    var h = '';
+    h += '<rect x="230" y="268" width="140" height="18" rx="3" fill="var(--brass-dark)"/>';
+    h += '<rect x="292" y="96" width="16" height="174" fill="var(--brass)"/>';
+    h += '<path d="M300 40 L314 92 L286 92 Z" fill="var(--needle)"/>';
+    // needle on the post shows the tilt
+    h += '<g transform="rotate(' + (a * 2.2) + ' 300 120)"><line x1="300" y1="120" x2="300" y2="176" stroke="var(--needle)" stroke-width="4" stroke-linecap="round"/></g>';
+    h += '<circle cx="300" cy="120" r="7" fill="var(--brass-dark)"/>';
+    h += '<line x1="' + lx + '" y1="' + ly + '" x2="' + rx + '" y2="' + ry + '" stroke="var(--brass)" stroke-width="10" stroke-linecap="round"/>';
+    h += '<circle cx="' + cx + '" cy="' + cy + '" r="9" fill="var(--brass-dark)"/>';
+    h += pan(lx, ly, load[0], 46);
+    h += pan(rx, ry, right || '', sel.length > 2 ? 30 : 38);
+    if (!sel.length) h += '<text x="' + rx + '" y="' + (ry + 80) + '" font-size="15" text-anchor="middle" fill="var(--muted)" font-family="Familjen Grotesk, sans-serif">empty</text>';
+    return h;
+  }
+  function drawScale(angle) { $('scale').innerHTML = scaleSVG(day[idx], picks, angle); }
+  function tiltFor(res) { if (!res.mass) return -14; var lr = Math.log(res.ratio); return Math.max(-14, Math.min(14, lr * 30)); }
+
+  function renderRound() {
+    var r = day[idx]; picks = []; weighed = false;
+    $('loadName').textContent = r.load[1];
+    $('rno').textContent = 'Round ' + (idx + 1) + ' of ' + day.length;
+    $('reading').textContent = '';
+    $('shelf').innerHTML = r.shelf.map(function (it, i) { return '<li><button class="tagbtn" data-i="' + i + '" aria-pressed="false"><span class="e" aria-hidden="true">' + it[0] + '</span><span class="n">' + esc(it[1]) + '<span class="kg" hidden></span></span></button></li>'; }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('.tagbtn'), function (b) { b.addEventListener('click', function () { toggle(+b.getAttribute('data-i')); }); });
+    $('controls').hidden = false; $('after').hidden = true;
+    refresh(); drawScale(0);
+    window.scrollTo(0, 0);
+  }
+  function toggle(i) {
+    if (weighed) return;
+    var k = picks.indexOf(i);
+    if (k >= 0) picks.splice(k, 1); else if (picks.length < CW.MAX_PICK) picks.push(i); else { toast('The pan holds three things. Take one off first.'); return; }
+    refresh(); drawScale(0);
+  }
+  function refresh() {
+    Array.prototype.forEach.call(document.querySelectorAll('.tagbtn'), function (b) { b.setAttribute('aria-pressed', String(picks.indexOf(+b.getAttribute('data-i')) >= 0)); b.disabled = weighed; });
+    $('weighBtn').disabled = !picks.length || weighed;
+    $('hint').textContent = picks.length ? picks.length + ' of 3 on the pan' : 'Pick up to three.';
+  }
+  $('weighBtn').addEventListener('click', function () {
+    if (!picks.length || weighed) return;
+    weighed = true; refresh();
+    if (idx === 0 && !ds.a.length) track('start');
+    ds.a[idx] = picks.slice(); save();
+    var r = day[idx], res = CW.score(r, picks), target = tiltFor(res);
+    // the beam swings past and settles, like a real balance
+    var t0 = performance.now(), dur = reduce ? 0 : 1400;
+    (function swing() {
+      var t = dur ? Math.min(1, (performance.now() - t0) / dur) : 1;
+      var ang = target * (1 - Math.exp(-5 * t) * Math.cos(9 * t));
+      drawScale(t >= 1 ? target : ang);
+      if (t < 1) requestAnimationFrame(swing); else afterWeigh(r, res);
+    })();
+  });
+  function afterWeigh(r, res) {
+    var pct = Math.round(Math.abs(res.off) * 100);
+    $('reading').innerHTML = res.level ? 'Dead level. <b>' + res.points + '</b> points.' :
+      'Your side is <b>' + pct + '%</b> ' + (res.off < 0 ? 'light' : 'heavy') + '. <b>' + res.points + '</b> points.';
+    Array.prototype.forEach.call(document.querySelectorAll('.tagbtn'), function (b) {
+      var i = +b.getAttribute('data-i'), kg = b.querySelector('.kg');
+      kg.textContent = 'about ' + CW.fmt(r.shelf[i][2]); kg.hidden = false;
+      if (r.best.idx.indexOf(i) >= 0) b.classList.add('best');
+    });
+    $('facts').textContent = r.load[1] + ': about ' + CW.fmt(r.load[2]) + '. ' + r.load[3] + '. Your pan: about ' + CW.fmt(res.mass) + '.';
+    $('bestLine').textContent = 'Closest possible from this shelf (gold outline): ' + r.best.idx.map(function (i) { return r.shelf[i][1].toLowerCase(); }).join(' + ') + ', about ' + CW.fmt(r.best.mass) + '.';
+    $('controls').hidden = true; $('after').hidden = false;
+    $('nextBtn').textContent = idx < day.length - 1 ? 'Next round' : 'Print the ticket';
+    $('after').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+  }
+  $('nextBtn').addEventListener('click', function () { if (idx < day.length - 1) { idx++; renderRound(); } else finish(); });
+
+  function finish() {
+    show('summary');
+    var rows = day.map(function (r, i) { return { r: r, res: CW.score(r, ds.a[i]) }; });
+    var total = rows.reduce(function (s, x) { return s + x.res.points; }, 0);
+    var avgOff = Math.round(100 * rows.reduce(function (s, x) { return s + Math.abs(x.res.off); }, 0) / rows.length);
+    if (!ds.done) { ds.done = 1; ds.total = total; save(); track('finish'); }
+    $('tSub').textContent = 'Weigh-in No. ' + no + ' · ' + dateTxt;
+    $('tTable').innerHTML = rows.map(function (x) {
+      var p = Math.round(Math.abs(x.res.off) * 100);
+      return '<tr><td>' + esc(x.r.load[1]) + '<br><span class="note" style="margin:0">' + (x.res.level ? 'dead level' : p + '% ' + (x.res.off < 0 ? 'light' : 'heavy')) + '</span></td><td class="n">' + x.res.points + '</td></tr>';
+    }).join('') + '<tr class="total"><td>Total</td><td class="n">' + total + ' / ' + (rows.length * 100) + '</td></tr>';
+    var line = rows.map(function (x) { var p = Math.abs(x.res.off); return x.res.level ? '🟩' : p <= 0.1 ? '🟨' : p <= 0.3 ? '🟧' : '🟥'; }).join('');
+    var tilt = rows.map(function (x) { return x.res.level ? '⚖️' : x.res.off < 0 ? '⬆️' : '⬇️'; }).join('');
+    $('shareText').textContent = 'Counterweight No. ' + no + ' · ' + total + '/' + (rows.length * 100) + '\n' + line + '\n' + tilt + '\nAverage miss: ' + avgOff + '%' + (CONFIG.siteUrl ? '\n' + CONFIG.siteUrl : '');
+    var done = Object.keys(store.days).filter(function (k) { return store.days[k].done; });
+    var streak = 0, d = new Date(); while (store.days[ymdOf(d)] && store.days[ymdOf(d)].done) { streak++; d.setDate(d.getDate() - 1); }
+    $('streak').textContent = 'Weigh-ins: ' + done.length + '. Streak: ' + streak + '. New weights at midnight, your time. Weights are typical values, so real ones vary a little.';
+    window.scrollTo(0, 0);
+  }
+  $('shareBtn').addEventListener('click', function () {
+    var t = $('shareText').textContent; track('share');
+    var fb = function () { var r = document.createRange(); r.selectNodeContents($('shareText')); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); toast('Selected. Copy it to share.'); };
+    try { navigator.clipboard.writeText(t).then(function () { toast('Copied'); }, fb); } catch (e) { fb(); }
+  });
+  var tt = 0; function toast(m) { var t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(function () { t.hidden = true; }, 1900); }
+  function begin() { if (ds.done || ds.a.length >= day.length) { finish(); return; } show('play'); idx = ds.a.length; renderRound(); }
+  $('startBtn').addEventListener('click', begin);
+  if (ds.done || ds.a.length) begin();
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ymdOf(new Date()) !== today) location.reload(); });
+})();
+</script>
+</body></html>
