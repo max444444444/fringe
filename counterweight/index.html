@@ -116,6 +116,9 @@ svg.dicon { display: inline-block; vertical-align: middle; }
 .stampbig { float: right; margin: -4px 0 6px 10px; width: 64px; height: 64px; background: var(--accent); color: var(--on-accent); font-family: var(--serif); font-weight: 800;
   display: grid; place-items: center; text-align: center; line-height: 1; border: 2px solid var(--accent-d); outline: 1.5px solid var(--on-accent); outline-offset: -6px; transform: rotate(-4deg); }
 .stampbig b { display: block; font-size: 24px; } .stampbig small { font-size: 10px; letter-spacing: .1em; }
+.btn.wide { display: block; width: 100%; margin-top: 12px; min-height: 50px; font-size: 16px; }
+.linkbtn { appearance: none; background: none; border: 0; color: var(--head); font: 700 14px var(--sans); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 10px 0 0; }
+.modechip { display: inline-block; background: var(--accent); color: var(--on-accent); font-size: 10.5px; font-weight: 700; letter-spacing: .12em; padding: 1px 6px; margin-right: 6px; vertical-align: 1px; }
 .toast { position: fixed; left: 16px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--line); color: var(--pale); padding: 10px 14px; font-size: 14px; z-index: 20; }
 </style>
 
@@ -133,6 +136,8 @@ svg.dicon { display: inline-block; vertical-align: middle; }
     <p><b>Something sits on the left pan.</b> Balance it by typing up to three objects, anything you can think of, onto the right pan. You get no numbers until you weigh.</p>
     <p>The closer you get, the more you score. There are five rounds, from light to heavy, and each object can only be used once a day.</p>
     <button class="primary" id="startBtn" type="button">Begin the weigh-in <i>→</i></button>
+    <button class="btn wide" id="endlessBtn" type="button">Play unlimited</button>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">Unlimited mode never runs out: random weights from the whole catalogue, and you can reuse objects. It doesn't touch today's puzzle.</p>
   </section>
 
   <section id="play" hidden>
@@ -154,6 +159,7 @@ svg.dicon { display: inline-block; vertical-align: middle; }
       <button class="primary" id="nextBtn" type="button">Next round <i>→</i></button>
     </div>
     <p class="used" id="used"></p>
+    <button class="linkbtn" id="exitEndless" type="button" hidden>Back to today's weigh-in</button>
   </section>
 
   <section class="card ticket" id="summary" hidden>
@@ -163,6 +169,7 @@ svg.dicon { display: inline-block; vertical-align: middle; }
     <table id="tTable"></table>
     <pre id="shareText"></pre>
     <button class="primary" id="shareBtn" type="button">Copy result <i>→</i></button>
+    <button class="btn wide" id="endlessBtn2" type="button">Keep playing: unlimited mode</button>
     <p class="sm" id="streak" style="margin-top:14px;font-size:13px;color:var(--muted)"></p>
   </section>
 </div>
@@ -245,7 +252,7 @@ CW_CATALOG += ";" +
 "🍞 baguette:0.25;🍞 sourdough loaf:0.9;🥖 french bread:0.3;🥐 box of croissants:0.4;🥯 bag of bagels:0.6;🫓 pita/flatbread:0.06;🫓 tortilla:0.04;🫓 pack of tortillas:0.5;🧇 frozen waffles:0.35;🥞 pancake mix:1;🍩 box of donuts/dozen donuts:0.85;🍪 box of cookies/pack of cookies:0.4;🥧 apple pie:1.1;🥧 pumpkin pie:1;🎂 wedding cake:12;🍰 slice of cake/cheesecake slice:0.12;🍮 pudding/flan:0.12;🍫 box of chocolates:0.3;🍫 chocolate chip:0.0003;🍬 bag of candy:0.4;🍭 candy cane:0.014;🍬 gummy bear:0.002;🍿 bag of popcorn/microwave popcorn:0.1;🥨 bag of pretzels:0.45;🥜 granola bar:0.04;🍫 protein bar:0.06;🥣 bowl of cereal:0.35;🥣 bowl of soup:0.4;🍲 pot of chili/chili:2;🥘 paella:3;🍛 curry:0.4;🍱 bento box:0.5;🍣 nigiri:0.03;🍤 fried shrimp/tempura:0.03;🍢 skewer/kebab:0.1;🍡 dango:0.06;🥙 gyro/wrap:0.35;🧆 falafel:0.02;🥗 bowl of salad:0.4;🍳 fried egg:0.05;🥓 slice of bacon:0.01;🌭 pack of hot dogs:0.45;🍔 big mac:0.22;🍟 large fries:0.15;🍗 bucket of fried chicken:1.5;🍗 chicken wing:0.04;🍖 rack of ribs:1.2;🥩 ribeye:0.4;🥩 ground beef/pound of ground beef:0.45;🍖 leg of lamb:2.5;🦃 turkey leg:0.7;🐟 whole salmon:4;🐟 trout:0.5;🦐 bag of shrimp:0.45;🦪 oyster:0.05;🦑 squid:0.3;🦀 king crab leg:0.5;🧀 slice of cheese:0.02;🧀 parmesan wedge:0.25;🧀 brie:0.2;🧈 tub of margarine:0.45;🥛 yogurt cup/yogurt:0.17;🥛 tub of yogurt:0.9;🥚 egg carton (18):1;🍦 popsicle:0.07;🍨 pint of ice cream:0.45;" +
 "🥤 can of energy drink/energy drink:0.5;🥤 sports drink/gatorade:0.65;🧃 apple juice bottle:2;🧃 lemonade jug:2;🥛 almond milk carton:1;🥛 half gallon of milk:1.95;☕ iced coffee:0.5;☕ coffee pod:0.012;🍵 box of tea:0.1;🍶 sake bottle:0.8;🥃 bottle of whiskey/whiskey:1.3;🍸 cocktail:0.25;🍾 champagne bottle/bottle of champagne:1.6;🍷 box of wine/boxed wine:3.3;🍺 pint of beer:0.57;🍺 growler:2;💧 gallon of water/water jug:3.8;💧 glass of water:0.35;🥥 coconut water:0.35;🧋 frappuccino:0.5;🥤 slushie:0.6;🥤 big gulp:1.3;" +
 "🧂 bag of salt/container of salt:0.75;🧂 pepper/peppercorns:0.1;🌿 spice jar/jar of spices:0.08;🍯 maple syrup bottle/maple syrup:0.5;🍫 cocoa powder:0.25;🧁 cake mix box:0.45;🥫 can of coconut milk:0.4;🥫 can of pumpkin:0.43;🥫 can of chickpeas:0.43;🥫 can of corned beef:0.34;🥫 can of spam/spam:0.34;🥫 can of cat food:0.09;🥫 can of dog food:0.4;🐶 bag of dog treats:0.3;🫙 jar of pickles/pickles:0.9;🫙 jar of salsa/salsa:0.45;🫙 jar of pasta sauce/pasta sauce:0.7;🫙 jar of nutella/nutella:0.4;🌭 mustard bottle/mustard:0.4;🥫 bottle of soy sauce/soy sauce:0.5;🥫 hot sauce:0.15;🫙 vinegar bottle/vinegar:0.5;🥫 bottle of ranch/ranch dressing:0.5;🍞 box of crackers/crackers:0.3;🍪 graham cracker:0.015;🥔 tater tots bag:0.9;🍕 pizza box/empty pizza box:0.3;🥡 chinese takeout/takeout bag:1;🍔 happy meal:0.5;" +
-"🫖 tea kettle/whistling kettle:1;🍳 wok:1.5;🍳 dutch oven:5.5;🍳 griddle:2.5;🍳 sheet pan:0.8;🍳 muffin tin:0.5;🍰 cake pan:0.5;🍳 spatula:0.08;🥄 ladle:0.15;🥄 wooden spoon:0.05;🥢 whisk:0.1;🥄 measuring cup:0.1;🥄 tablespoon:0.03;🍴 set of cutlery/silverware:1;🔪 chef's knife/chefs knife:0.2;🔪 knife block:2.5;🔪 butter knife:0.04;🔪 cleaver:0.6;🧀 cheese grater/grater:0.25;🥔 potato masher:0.2;🧄 garlic press:0.2;🍋 lemon squeezer/juicer:0.3;🍕 pizza cutter:0.1;🍷 corkscrew/bottle opener:0.06;🥫 can opener:0.15;🧊 ice tray/ice cube tray:0.2;🍳 tongs:0.1;🧂 salt and pepper set:0.3;🫖 french press:0.5;☕ espresso cup:0.1;☕ travel mug:0.35;🥛 pitcher/jug:1;🍽️ platter/serving tray:1;🍽️ set of plates/stack of plates:3;🥣 salad bowl:0.8;🍽️ placemat:0.08;🍽️ tablecloth:0.5;🧺 picnic basket:2;🥡 bread box:2;🍪 cookie jar:1.2;🧁 cupcake stand:0.8;🥣 food processor:4;🥤 juicer machine:4;🍿 popcorn machine:5;☕ kettle electric/electric kettle:1.3;🍞 bread machine:6;🧊 ice maker:10;🍷 wine fridge:25;🧊 chest freezer/freezer:45;🔥 grill/bbq:20;🔥 charcoal bag/bag of charcoal:7;🔥 gas grill:40;🍳 hot plate:2.5;🍕 pizza stone:3;🫙 canning jar:0.4;🧽 scrub brush:0.1;🧽 steel wool:0.02;🧴 bottle of bleach/bleach:3.8;🧴 spray bottle:0.5;🧴 window cleaner:0.7;🧴 laundry detergent:4.5;🧺 laundry pod/tide pod:0.02;🧴 fabric softener:2;🧻 box of paper plates/paper plates:0.5;🥤 paper cup:0.01;🥤 plastic cup/red solo cup:0.01;🥢 straw:0.0005;🧻 napkin:0.002;🧻 pack of napkins:0.3;🧻 roll of plastic wrap/cling film:0.3;🧻 box of trash bags:0.6;🧻 zip lock bag/ziploc bag:0.003;" +
+"🫖 tea kettle/whistling kettle:1;🍳 wok:1.5;🍳 dutch oven:5.5;🍳 griddle:2.5;🍳 sheet pan:0.8;🍳 muffin tin:0.5;🍰 cake pan:0.5;🍳 spatula:0.08;🥄 ladle:0.15;🥄 wooden spoon:0.05;🥢 whisk:0.1;🥄 measuring cup:0.1;🥄 tablespoon:0.03;🍴 set of cutlery/silverware:1;🔪 chef's knife/chefs knife:0.2;🔪 knife block:2.5;🔪 butter knife:0.04;🔪 cleaver:0.6;🧀 cheese grater/grater:0.25;🥔 potato masher:0.2;🧄 garlic press:0.2;🍋 lemon squeezer/juicer:0.3;🍕 pizza cutter:0.1;🍷 corkscrew/bottle opener:0.06;🥫 can opener:0.15;🧊 ice tray/ice cube tray:0.2;🍳 tongs:0.1;🧂 salt and pepper set:0.3;🫖 french press:0.5;☕ espresso cup:0.1;☕ travel mug:0.35;🥛 pitcher/jug:1;🍽️ platter/serving tray:1;🍽️ set of plates/stack of plates:3;🥣 salad bowl:0.8;🍽️ placemat:0.08;🍽️ tablecloth:0.5;🧺 picnic basket:2;🥡 bread box:2;🍪 cookie jar:1.2;🧁 cupcake stand:0.8;🥣 food processor:4;🥤 juicer machine:4;🍿 popcorn machine:5;☕ electric kettle/kettle electric:1.3;🍞 bread machine:6;🧊 ice maker:10;🍷 wine fridge:25;🧊 chest freezer/freezer:45;🔥 grill/bbq:20;🔥 charcoal bag/bag of charcoal:7;🔥 gas grill:40;🍳 hot plate:2.5;🍕 pizza stone:3;🫙 canning jar:0.4;🧽 scrub brush:0.1;🧽 steel wool:0.02;🧴 bottle of bleach/bleach:3.8;🧴 spray bottle:0.5;🧴 window cleaner:0.7;🧴 laundry detergent:4.5;🧺 laundry pod/tide pod:0.02;🧴 fabric softener:2;🧻 box of paper plates/paper plates:0.5;🥤 paper cup:0.01;🥤 plastic cup/red solo cup:0.01;🥢 straw:0.0005;🧻 napkin:0.002;🧻 pack of napkins:0.3;🧻 roll of plastic wrap/cling film:0.3;🧻 box of trash bags:0.6;🧻 zip lock bag/ziploc bag:0.003;" +
 "🛏️ bunk bed:80;🛏️ crib:20;🛏️ air mattress:3;🛏️ futon:30;🛏️ headboard:15;🛏️ bed frame:35;🛌 sleeping pillow/memory foam pillow:1.4;🛌 weighted blanket:7;🛌 quilt:2;🛌 sheet set/bed sheets:1.2;🛋️ throw pillow/cushion:0.4;🛋️ ottoman:8;🛋️ recliner:40;🛋️ loveseat:35;🛋️ sectional sofa:100;🪑 rocking chair:12;🪑 bar stool:7;🪑 high chair:7;🪑 bench:15;🪑 kitchen chair:6;🪑 gaming chair:20;🪑 plastic chair/lawn chair:3;🗄️ nightstand/bedside table:12;🗄️ chest of drawers:45;🗄️ tv stand:25;🗄️ shoe rack:5;🗄️ coat rack:5;🗄️ kitchen island:80;🗄️ cabinet:30;🗄️ storage bin/plastic tub:2;🗄️ toy box:8;🪞 full length mirror:8;🪞 vanity mirror:3;🖼️ canvas painting:2;🖼️ poster:0.1;🖼️ photo album:1;🕰️ grandfather clock:70;🕰️ cuckoo clock:2;💡 floor lamp:5;💡 desk lamp:1.5;💡 chandelier:15;💡 string lights/fairy lights:0.3;🕯️ tea light:0.015;🕯️ candle holder:0.4;🪔 lantern:1;🪴 cactus:1;🪴 bonsai tree/bonsai:2;🪴 succulent:0.3;🪴 fiddle leaf fig:10;🌵 big cactus:15;🪴 hanging plant:2;🏺 ceramic pot:3;🧺 wicker basket:0.8;🧺 hamper:2;🧸 dollhouse:8;🪟 window:15;🪟 blinds:3;🚪 front door:40;🚪 screen door:12;🔑 doorknob:0.4;🔔 doorbell:0.2;🧯 fire blanket:0.6;🔦 lantern flashlight:0.8;🌀 ceiling fan:8;🌀 desk fan/fan:3;🌀 box fan:4;🌡️ thermostat:0.3;🌡️ thermometer:0.05;🔥 space heater/heater:4;❄️ air conditioner/window ac:25;❄️ portable ac:30;💨 humidifier:2;💨 air purifier:6;💨 dehumidifier:15;🌀 robot vacuum/roomba:3.5;🌀 handheld vacuum/dustbuster:1.2;🧹 dustpan:0.3;🧹 feather duster:0.1;🧹 swiffer:0.6;🪣 mop bucket:2;🧼 steam mop:3;🧺 drying rack:3;👕 steamer/garment steamer:1.5;🧵 sewing machine:8;🧵 spool of thread:0.02;🧶 ball of yarn:0.1;🪡 needle/sewing needle:0.0002;🪡 knitting needles:0.03;🧷 safety pin:0.0005;🧷 pin cushion:0.05;📦 moving box/full moving box:15;📦 pallet:20;📦 amazon package/parcel:2;🎁 gift box:0.3;🛍️ shopping bag/plastic bag:0.005;🛍️ bag of groceries/grocery bag:5;🛍️ tote bag:0.2;🧺 basket of laundry:5;🗑️ recycling bin:5;🗑️ wheelie bin/garbage can:12;🗑️ wastebasket:0.8;🔌 power strip:0.4;🔌 adapter:0.08;💡 smart bulb:0.07;🔒 door lock:1;🔒 safe:30;🔒 bike lock:1.2;🪜 step stool:3;🪜 step ladder:5;" +
 "📱 old flip phone/flip phone:0.1;📱 iphone pro max:0.24;📱 phone case:0.03;📱 pager:0.08;💻 gaming laptop:2.7;💻 netbook:1;🖥️ imac:4.5;🖥️ server:20;🖥️ gaming pc:12;🖥️ ultrawide monitor:9;⌨️ mechanical keyboard:1.1;🖱️ trackpad:0.2;🖱️ gaming mouse:0.1;🎧 gaming headset:0.35;🎧 noise cancelling headphones:0.25;📺 65 inch tv:25;📺 85 inch tv:45;📺 small tv:4;📺 soundbar:3;🔊 subwoofer:10;🔊 smart speaker/alexa/echo:0.8;🔊 boombox:3;📻 walkie talkie:0.2;📟 calculator graphing/graphing calculator:0.2;🎮 wii:1.2;🎮 game boy/gameboy:0.22;🎮 arcade machine:120;🎮 vr headset:0.5;🎮 steam deck:0.67;🎮 video game/game case:0.1;💿 cd:0.015;💿 dvd/blu ray:0.08;📼 vhs tape/cassette:0.25;💾 floppy disk:0.02;💾 hard drive external/external hard drive:0.25;💾 sd card:0.002;📷 polaroid camera:0.5;📷 dslr camera/dslr:0.8;📷 gopro:0.15;📷 camera lens:0.5;📷 tripod:1.5;🖨️ 3d printer:8;🖨️ scanner:3;🖨️ ink cartridge:0.05;📠 fax machine:5;⌚ fitbit/fitness tracker:0.025;🔋 phone battery:0.05;🔋 car jump starter:1;🔌 laptop charger:0.35;🔌 hdmi cable/cable:0.1;🔌 usb cable:0.03;🕹️ joystick:0.5;📡 satellite dish:5;🎙️ podcast microphone:0.5;📽️ film projector:8;🔦 headlamp:0.1;🔦 laser pointer:0.03;⏰ kitchen timer:0.1;⚖️ bathroom scale:1.8;⚖️ kitchen scale:0.5;🧮 abacus:0.5;🔭 binoculars:0.7;🪫 dead battery:0.023";
 
@@ -261,8 +268,8 @@ CW_CATALOG += ";" +
 "🚗 sedan:1400;🚙 suv:2100;🚐 minivan:2000;🚕 taxi:1600;🏎️ race car/f1 car:800;🚓 police car:1800;🚑 ambulance:4000;🚒 fire truck:18000;🚛 semi truck/18 wheeler:15000;🚚 delivery truck/box truck:7000;🚜 forklift:4000;🏗️ crane:50000;🚧 traffic cone:2;🚧 construction barrier:15;🚦 traffic light:100;🛑 stop sign:4;🚏 bus stop sign:20;🛵 moped:80;🏍️ dirt bike:100;🛺 golf buggy:450;🚲 electric bike/e-bike:25;🚲 tandem bike:20;🚲 mountain bike:13;🚲 road bike:8;🚤 speedboat:1500;⛵ dinghy:50;🛶 rowboat:80;🚢 cruise ship:100000000;✈️ cessna/small plane:750;✈️ jumbo jet/747:180000;🚀 space shuttle:2000000;🛸 satellite:2000;🎈 hot air balloon:300;🪂 parachute:7;🚡 cable car:2000;🚃 subway car:35000;🚲 unicycle:5;🛻 trailer:800;🚐 camper van/rv:5000;" +
 "🐕 beagle:10;🐕 great dane:60;🐕 bulldog:23;🐕 dachshund/wiener dog:8;🐕 husky:23;🐕 rottweiler:45;🐕 poodle toy/toy poodle:3;🐕 saint bernard:70;🐕 border collie:18;🐕 shih tzu:6;🐕 puppy:3;🐈 maine coon:8;🐈 sphynx cat:4;🐈 fat cat:9;🐇 hare:4;🐁 gerbil:0.07;🐀 ferret:1;🦎 bearded dragon:0.45;🦎 gecko:0.06;🦎 iguana:4;🦎 komodo dragon:70;🐍 python:50;🐍 boa constrictor:15;🐢 sea turtle:150;🐸 bullfrog:0.5;🐸 toad:0.08;🐠 clownfish:0.25;🐠 betta fish:0.003;🐟 tuna:250;🐟 bass:2;🐟 catfish:5;🐡 pufferfish:0.5;🦈 great white shark:1100;🐋 orca/killer whale:5000;🐋 humpback whale:30000;🦭 seal:100;🦭 walrus:1000;🦦 sea otter:30;🐧 emperor penguin:30;🐧 baby penguin:2;🦩 flamingo:3;🦢 swan:10;🦚 peacock:5;🦃 wild turkey:9;🐓 rooster:3;🐤 chick/baby chick:0.04;🦆 duckling:0.05;🦉 barn owl:0.5;🦅 bald eagle:5;🦜 macaw:1;🦜 budgie/parakeet:0.03;🐦 crow/raven:1;🐦 robin:0.08;🐦 sparrow:0.03;🦇 bat:0.02;🐿️ chipmunk:0.1;🦔 porcupine:12;🦝 raccoon:7;🦨 skunk:3;🦡 badger:12;🦫 groundhog:4;🐇 rabbit wild/wild rabbit:1.5;🦌 moose:500;🦌 reindeer:120;🦬 bison/buffalo:900;🐂 ox:900;🐃 water buffalo:800;🐎 pony shetland/shetland pony:200;🐎 clydesdale:900;🫏 donkey:250;🐪 camel:500;🦙 alpaca:65;🐑 lamb:5;🐐 baby goat/kid goat:3;🐖 piglet:1.5;🐄 calf:40;🐎 foal:50;🦒 baby giraffe:70;🐘 baby elephant:100;🐘 african elephant:6000;🦏 white rhino:2300;🦛 pygmy hippo:250;🐆 cheetah:50;🐆 leopard:60;🐅 bengal tiger:220;🦁 lion cub:2;🐻 grizzly bear:270;🐻‍❄️ polar bear:450;🐻 black bear:120;🐼 red panda:5;🐨 baby koala/joey:0.5;🦘 wallaby:15;🦍 silverback gorilla:180;🦧 orangutan:80;🐒 chimpanzee/chimp:50;🐒 baboon:25;🦥 three toed sloth:4;🐊 alligator baby/baby alligator:0.5;🦖 t rex/t-rex:8000;🦕 brontosaurus:15000;🐉 dragon:5000;🦄 unicorn:500;🐝 bumblebee:0.0002;🐞 ladybug:0.00002;🦗 cricket:0.0005;🦗 grasshopper:0.0003;🪲 beetle:0.002;🪳 cockroach:0.003;🦟 mosquito:0.0000025;🪰 fly:0.00001;🐛 caterpillar:0.002;🪱 worm/earthworm:0.001;🦂 scorpion:0.03;🕷️ tarantula:0.07;🦀 hermit crab:0.03;🦞 crayfish:0.05;🐚 conch shell:0.5;🐙 giant octopus:50;🦑 giant squid:275;🪼 jellyfish:0.5;🐠 goldfish bowl/fish bowl:5;🐠 fish tank/aquarium:100;" +
 "🎸 electric guitar:3.5;🎸 bass guitar:4;🎸 acoustic guitar:2;🪕 ukulele:0.5;🎻 cello:3;🎻 double bass:10;🎻 viola:0.6;🎺 trombone:1.2;🎺 tuba:12;🎺 french horn:2.5;🎷 clarinet:0.8;🪈 piccolo:0.2;🪈 recorder:0.1;🪈 harmonica:0.1;🥁 drum kit/drum set:30;🥁 snare drum:3;🥁 bongo:2;🥁 drumsticks:0.1;🪇 maracas:0.2;🪘 tambourine:0.4;🔔 triangle:0.1;🔔 cowbell:0.3;🔔 church bell:1000;🎹 harp:35;🎹 upright piano:220;🎹 organ:200;🎹 synthesizer:8;🎤 amp/guitar amp:15;🎧 dj turntable/turntable:6;💿 vinyl record:0.18;📻 record player:5;🎼 sheet music:0.01;🎼 music stand:2;" +
-"🪨 brick of clay/clay:1;🪨 marble slab:30;🪨 meteorite:5;🪨 geode:2;💎 gemstone/crystal:0.05;🧊 iceberg:1000000;🧊 block of ice:20;❄️ snowflake:0.000003;☃️ snowman small/small snowman:15;💧 raindrop:0.00003;☁️ cloud:500000000;🌍 earth:5972000000000000000000000;🌙 moon rock:1;⭐ star:2000000000000000000000000000000;🏔️ mountain:1000000000000;🌋 volcano rock/lava rock:0.3;🏖️ bucket of sand:15;🐚 seashell:0.02;🪵 driftwood:3;🌰 acorn:0.004;🌰 coconut shell:0.2;🍂 maple leaf:0.003;🌿 bunch of herbs:0.03;🍄 truffle:0.05;🌵 cactus pad:0.2;🪹 bird nest:0.05;🥚 robin egg:0.003;🥚 chicken egg brown/brown egg:0.06;🥚 dinosaur egg:3;" +
-"🏛️ statue of liberty torch:1600;🗽 statue of liberty:204000;🗼 eiffel tower:7300000;🗿 moai/easter island head:12000;🛎️ hotel bell/service bell:0.3;⏳ egg timer:0.1;🏺 ancient vase:5;⚱️ trophy cup:2;🪙 gold coin:0.031;🪙 silver coin:0.031;🪙 euro coin:0.0075;🪙 roll of quarters:0.23;💰 bag of money/money bag:5;💵 stack of cash/brick of cash:1;💵 million dollars:10;💳 wallet full/full wallet:0.3;🧾 receipt:0.002;🎟️ concert ticket:0.002;🪪 id card/drivers license:0.005;🛂 passport:0.03;🗝️ skeleton key:0.03;🔑 car key/key fob:0.03;🧸 pillow pet:0.5;🪅 hula hoop:0.3;🎡 ferris wheel:3000000;🎠 carousel horse:20;🛏️ hospital bed:100;🚿 hot tub:300;🛁 clawfoot tub:150;🚽 porta potty:90;🚪 garage door:70;🏠 tiny house:5000;🏠 house:150000;🏢 skyscraper:300000000;⛩️ shrine gate:5000;⚓ ship anchor:2000;🪝 meat hook:1;🛎️ anvil:50;🧲 electromagnet:30;🔔 alarm siren:3;🚨 police light/siren:2;🧯 sprinkler head:0.1;🪧 picket sign/protest sign:0.5;🪧 sandwich board:6;🎪 circus tent:3000;🎭 theater curtain:200;🛗 elevator:1000;🧑‍🚀 astronaut suit/spacesuit:130;🤖 robot:50;🦾 robot arm:30;🛰️ space station/iss:420000;🗑️ dumpster:1500;🛒 vending machine:350;🏧 atm:250;☎️ phone booth:500;📮 postbox/mailbox big/post box:100;🚰 water fountain:20;🧯 fire hydrant:80";
+"🪨 brick of clay/clay:1;🪨 marble slab:30;🪨 meteorite:5;🪨 geode:2;💎 gemstone/crystal:0.05;🧊 iceberg:1000000;🧊 block of ice:20;❄️ snowflake:0.000003;☃️ small snowman/snowman small/snowman:15;💧 raindrop:0.00003;☁️ cloud:500000000;🌍 earth:5972000000000000000000000;🌙 moon rock:1;⭐ star:2000000000000000000000000000000;🏔️ mountain:1000000000000;🌋 volcano rock/lava rock:0.3;🏖️ bucket of sand:15;🐚 seashell:0.02;🪵 driftwood:3;🌰 acorn:0.004;🌰 coconut shell:0.2;🍂 maple leaf:0.003;🌿 bunch of herbs:0.03;🍄 truffle:0.05;🌵 cactus pad:0.2;🪹 bird nest:0.05;🥚 robin egg:0.003;🥚 chicken egg brown/brown egg:0.06;🥚 dinosaur egg:3;" +
+"🏛️ statue of liberty torch:1600;🗽 statue of liberty:204000;🗼 eiffel tower:7300000;🗿 moai/easter island head:12000;🛎️ hotel bell/service bell:0.3;⏳ egg timer:0.1;🏺 ancient vase:5;⚱️ trophy cup:2;🪙 gold coin:0.031;🪙 silver coin:0.031;🪙 euro coin:0.0075;🪙 roll of quarters:0.23;💰 bag of money/money bag:5;💵 stack of cash/brick of cash:1;💵 million dollars:10;💳 full wallet/wallet full:0.3;🧾 receipt:0.002;🎟️ concert ticket:0.002;🪪 id card/drivers license:0.005;🛂 passport:0.03;🗝️ skeleton key:0.03;🔑 car key/key fob:0.03;🧸 pillow pet:0.5;🪅 hula hoop:0.3;🎡 ferris wheel:3000000;🎠 carousel horse:20;🛏️ hospital bed:100;🚿 hot tub:300;🛁 clawfoot tub:150;🚽 porta potty:90;🚪 garage door:70;🏠 tiny house:5000;🏠 house:150000;🏢 skyscraper:300000000;⛩️ shrine gate:5000;⚓ ship anchor:2000;🪝 meat hook:1;🛎️ anvil:50;🧲 electromagnet:30;🔔 alarm siren:3;🚨 police light/siren:2;🧯 sprinkler head:0.1;🪧 picket sign/protest sign:0.5;🪧 sandwich board:6;🎪 circus tent:3000;🎭 theater curtain:200;🛗 elevator:1000;🧑‍🚀 astronaut suit/spacesuit:130;🤖 robot:50;🦾 robot arm:30;🛰️ space station/iss:420000;🗑️ dumpster:1500;🛒 vending machine:350;🏧 atm:250;☎️ phone booth:500;📮 postbox/mailbox big/post box:100;🚰 water fountain:20;🧯 fire hydrant:80";
 
 // Counterweight core: catalogue lookup for typed objects, daily loads, scoring.
 var CW = (function () {
@@ -349,7 +356,7 @@ var CW = (function () {
     if (kg < 1) return (kg < 0.01 ? (kg * 1000).toFixed(1) : Math.round(kg * 1000)) + ' g (' + (lb * 16 < 10 ? (lb * 16).toFixed(1) : Math.round(lb * 16)) + ' oz)';
     return (kg < 10 ? kg.toFixed(kg < 3 ? 2 : 1) : Math.round(kg)) + ' kg (' + (lb < 10 ? lb.toFixed(1) : Math.round(lb)) + ' lb)';
   }
-  return { ROUNDS: ROUNDS, MAX_PICK: MAX_PICK, lookup: lookup, makeDay: makeDay, score: score, fmt: fmt, dayNumber: dayNumber, size: ENTRIES.length };
+  return { ROUNDS: ROUNDS, MAX_PICK: MAX_PICK, lookup: lookup, makeDay: makeDay, score: score, fmt: fmt, dayNumber: dayNumber, size: ENTRIES.length, entries: ENTRIES };
 })();
 
 
@@ -382,9 +389,28 @@ var CW = (function () {
   function iconHTML(ic, px) { return drawn(ic) ? '<svg class="dicon" viewBox="0 0 64 64" width="' + px + '" height="' + px + '" aria-hidden="true">' + CW_ICONS[ic.slice(1)] + '</svg>' : ic; }
   var ds = store.days[today] = store.days[today] || { a: [] };
   var idx = 0, pan = [], weighed = false, lastRes = null;
+  // unlimited mode: random catalogue weights, reuse allowed, separate stats
+  var mode = 'daily', es = null;
+  store.endless = store.endless || { n: 0, sum: 0, levels: 0, best: 0 };
+  var POOL = CW.entries.filter(function (e) { return e.kg >= 0.4 && e.kg <= 60; });
+  function withArticle(n) { if (/s$/.test(n) && !/ss$/.test(n)) return cap(n); return (/^[aeiou]/i.test(n) ? 'An ' : 'A ') + n; }
+  function endlessLoad() {
+    var t = Math.exp(Math.log(0.5) + Math.random() * (Math.log(60) - Math.log(0.5)));
+    var near = POOL.filter(function (e) { return Math.abs(Math.log(e.kg / t)) < 0.2 && !es.seen[e.id]; });
+    if (!near.length) near = POOL.filter(function (e) { return !es.seen[e.id]; });
+    if (!near.length) { es.seen = {}; near = POOL; }
+    var e = near[Math.floor(Math.random() * near.length)]; es.seen[e.id] = 1;
+    return { load: [e.icon, withArticle(e.name), e.kg, ''] };
+  }
+  function startEndless() {
+    mode = 'endless'; es = { n: 0, sum: 0, run: 0, seen: {} };
+    day = [endlessLoad()]; idx = 0; show('play'); $('exitEndless').hidden = false; track('endless');
+    try { history.replaceState(null, '', '#unlimited'); } catch (e) {}
+    renderRound();
+  }
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function show(id) { ['intro', 'play', 'summary'].forEach(function (s) { $(s).hidden = s !== id; }); }
-  function usedList() { var u = {}; ds.a.forEach(function (r) { (r || []).forEach(function (e) { u[e.id] = e; }); }); pan.forEach(function (e) { u[e.id] = e; }); return u; }
+  function usedList() { var u = {}; if (mode === 'endless') { pan.forEach(function (e) { u[e.id] = e; }); return u; } ds.a.forEach(function (r) { (r || []).forEach(function (e) { u[e.id] = e; }); }); pan.forEach(function (e) { u[e.id] = e; }); return u; }
 
   // ---- the scale ----
   function roundel(ic, x, y, r) {
@@ -459,7 +485,8 @@ var CW = (function () {
     var r = day[idx]; pan = []; weighed = false; lastRes = null;
     $('loadIcon').innerHTML = iconHTML(r.load[0], 46);
     $('loadName').textContent = r.load[1];
-    setMeta('Round ' + (idx + 1) + ' of ' + day.length);
+    if (mode === 'endless') $('meta').innerHTML = '<span class="modechip">UNLIMITED</span><b>Round ' + (idx + 1) + '</b>' + (es.n ? ' · average ' + Math.round(es.sum / es.n) : '') + '<br>Streak of 80+ rounds: ' + es.run + ' · best ' + store.endless.best;
+    else setMeta('Round ' + (idx + 1) + ' of ' + day.length);
     $('scale').setAttribute('aria-label', 'A balance scale. The left pan holds ' + r.load[1].toLowerCase() + '.');
     $('reading').textContent = ''; $('msg').textContent = ''; $('thing').value = '';
     $('adder').hidden = false; $('weighBtn').hidden = false; $('after').hidden = true;
@@ -481,6 +508,7 @@ var CW = (function () {
     $('addBtn').disabled = weighed || pan.length >= CW.MAX_PICK;
     $('hint').textContent = pan.length + ' OF 3 PLACED';
     var u = usedList(), prev = Object.keys(u).filter(function (id) { return weighed || !pan.some(function (e) { return e.id === id; }); });
+    if (mode === 'endless') { $('used').innerHTML = '<b>Unlimited mode:</b> reuse anything you like. Rounds played, all time: ' + store.endless.n + (store.endless.levels ? ' · dead level ' + store.endless.levels + ' times' : '') + '.'; return; }
     $('used').innerHTML = prev.length ? '<b>Used today:</b> ' + prev.map(function (id) { return '<span>' + iconHTML(u[id].icon, 16) + ' ' + esc(u[id].name) + '</span>'; }).join('') : '<b>Used today:</b> nothing yet. Each object works once a day.';
   }
   function isTheLoad(e) {
@@ -498,6 +526,7 @@ var CW = (function () {
       return;
     }
     var e = { id: r.entry.id, name: r.entry.name, kg: r.entry.kg, icon: r.entry.icon };
+    if (mode === 'endless' && usedList()[e.id]) { $('msg').textContent = 'The ' + e.name + ' is already on the pan.'; return; }
     if (usedList()[e.id]) { $('msg').textContent = 'You\'ve already used the ' + e.name + ' today. Try something else.'; return; }
     if (isTheLoad(e)) { $('msg').textContent = 'That\'s what\'s on the other pan. Nice try.'; return; }
     pan.push(e); $('thing').value = ''; $('msg').textContent = r.corrected ? 'Read that as "' + e.name + '".' : '';
@@ -507,11 +536,17 @@ var CW = (function () {
   $('weighBtn').addEventListener('click', function () {
     if (!pan.length || weighed) return;
     weighed = true;
-    if (idx === 0 && !ds.a.length) track('start');
-    ds.a[idx] = pan.slice(); save();
+    if (mode === 'daily') {
+      if (idx === 0 && !ds.a.length) track('start');
+      ds.a[idx] = pan.slice(); save();
+    }
     $('adder').hidden = true; renderTokens();
     var r = day[idx], res = CW.score(r, pan), target = tiltFor(res);
     lastRes = res;
+    if (mode === 'endless') {
+      es.n++; es.sum += res.points; es.run = res.points >= 80 ? es.run + 1 : 0;
+      var E = store.endless; E.n++; E.sum += res.points; if (res.level) E.levels++; if (es.run > E.best) E.best = es.run; save();
+    }
     var t0 = performance.now(), dur = reduce ? 0 : 1500;
     (function swing() {
       var t = dur ? Math.min(1, (performance.now() - t0) / dur) : 1;
@@ -522,12 +557,15 @@ var CW = (function () {
   function afterWeigh(r, res) {
     var pct = Math.round(Math.abs(res.off) * 100);
     $('reading').innerHTML = res.level ? 'Dead level. <b>' + res.points + '</b> points.' : 'Your side is <b>' + pct + '%</b> too ' + (res.off < 0 ? 'light' : 'heavy') + '. <b>' + res.points + '</b> points.';
-    $('facts').innerHTML = '<b>' + esc(r.load[1]) + '</b> weighs about ' + CW.fmt(r.load[2]) + '. ' + esc(r.load[3]) + '. Your side came to about ' + CW.fmt(res.mass) + '.';
+    if (mode === 'endless' && es.run > 1) $('reading').innerHTML += ' ' + es.run + ' in a row.';
+    $('facts').innerHTML = '<b>' + esc(r.load[1]) + '</b> weighs about ' + CW.fmt(r.load[2]) + '. ' + (r.load[3] ? esc(r.load[3]) + '. ' : '') + 'Your side came to about ' + CW.fmt(res.mass) + '.';
     $('weighBtn').hidden = true; $('after').hidden = false;
-    $('nextBtn').innerHTML = (idx < day.length - 1 ? 'Next round' : 'Print the ticket') + ' <i>→</i>';
+    $('nextBtn').innerHTML = (mode === 'endless' ? 'Next weight' : idx < day.length - 1 ? 'Next round' : 'Print the ticket') + ' <i>→</i>';
+    if (mode === 'endless') renderRoundMeta();
     $('reading').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   }
-  $('nextBtn').addEventListener('click', function () { if (idx < day.length - 1) { idx++; renderRound(); } else finish(); });
+  function renderRoundMeta() { $('meta').innerHTML = '<span class="modechip">UNLIMITED</span><b>Round ' + (idx + 1) + '</b> · average ' + Math.round(es.sum / es.n) + '<br>Streak of 80+ rounds: ' + es.run + ' · best ' + store.endless.best; }
+  $('nextBtn').addEventListener('click', function () { if (mode === 'endless') { day.push(endlessLoad()); idx++; renderRound(); return; } if (idx < day.length - 1) { idx++; renderRound(); } else finish(); });
 
   function finish() {
     show('summary'); setMeta('Today\'s weigh-in is done');
@@ -556,8 +594,12 @@ var CW = (function () {
   var tt = 0; function toast(m) { var t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(function () { t.hidden = true; }, 1900); }
   function begin() { if (ds.done || ds.a.length >= day.length) { finish(); return; } show('play'); idx = ds.a.length; renderRound(); }
   $('startBtn').addEventListener('click', begin);
-  if (ds.done || ds.a.length) begin();
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && ymdOf(new Date()) !== today) location.reload(); });
+  $('endlessBtn').addEventListener('click', startEndless);
+  $('endlessBtn2').addEventListener('click', startEndless);
+  $('exitEndless').addEventListener('click', function () { try { history.replaceState(null, '', location.pathname); } catch (e) {} location.reload(); });
+  if (/unlimited/.test(location.hash)) startEndless();
+  else if (ds.done || ds.a.length) begin();
+  document.addEventListener('visibilitychange', function () { if (mode === 'daily' && document.visibilityState === 'visible' && ymdOf(new Date()) !== today) location.reload(); });
 })();
 </script>
 </body></html>
