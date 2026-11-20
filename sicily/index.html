@@ -6,548 +6,693 @@
 <title>Sicily Krillion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* Layout: depth gauge on the left, one prompt card at a time on the right; the sea darkens as you sink. */
-  --sea-top: #1f8fb8;
-  --sea-bot: #0b4f7a;
-  --ink: #f4efe2;
-  --ink-dim: #b9cbd6;
+  /* Layout: full-screen pixel ocean on a canvas; HUD on top, answer bar at the bottom, prompt card floats at the diver's depth. */
+  --night: #050b16;
+  --panel: rgba(8, 20, 36, 0.86);
+  --edge: rgba(150, 200, 230, 0.28);
+  --ink: #eef3f6;
+  --dim: #8fa7b8;
   --lemon: #ffd23f;
-  --coral: #f08c6c;
-  --panel: rgba(4, 28, 48, 0.62);
-  --line: rgba(244, 239, 226, 0.18);
-  --display: "Young Serif", Georgia, "Times New Roman", serif;
-  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --coral: #ff7a59;
+  --sea: #4cc3e6;
+  --pix: "Pixelify Sans", "Courier New", monospace;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; }
-body {
-  font-family: var(--body);
-  color: var(--ink);
-  background: linear-gradient(180deg, var(--sea-top) 0%, var(--sea-bot) 100%);
-  background-color: var(--sea-bot);
-  transition: background 1.2s ease;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-canvas#bubbles { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--night); color: var(--ink); font-family: var(--mono); }
+canvas#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.scan { position: fixed; inset: 0; pointer-events: none; z-index: 5;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+.vignette { position: fixed; inset: 0; pointer-events: none; z-index: 4; box-shadow: inset 0 0 160px rgba(0,0,0,0.55); }
 
-/* Majolica tile band */
-.tiles {
-  height: 46px;
-  flex: none;
-  position: relative;
-  z-index: 1;
-  background-color: #f6efdc;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='46' viewBox='0 0 46 46'%3E%3Crect width='46' height='46' fill='%23f6efdc'/%3E%3Cpath d='M23 4 L30 16 L23 23 L16 16 Z M23 42 L30 30 L23 23 L16 30 Z M4 23 L16 16 L23 23 L16 30 Z M42 23 L30 16 L23 23 L30 30 Z' fill='%23175e9c'/%3E%3Ccircle cx='23' cy='23' r='4.5' fill='%23ffd23f'/%3E%3Cpath d='M0 0 L7 0 L0 7 Z M46 0 L39 0 L46 7 Z M0 46 L7 46 L0 39 Z M46 46 L39 46 L46 39 Z' fill='%23e3742f'/%3E%3Ccircle cx='23' cy='23' r='1.8' fill='%23e3742f'/%3E%3C/svg%3E");
-  background-size: 46px 46px;
-  border-bottom: 4px solid #175e9c;
-}
+.px-box { background: var(--panel); border: 2px solid var(--edge); box-shadow: 0 0 0 2px rgba(0,0,0,0.5), 4px 4px 0 rgba(0,0,0,0.45); }
 
-header.top {
-  position: relative; z-index: 1;
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 14px clamp(16px, 4vw, 40px);
-  flex-wrap: wrap;
-}
-.brand { display: flex; align-items: baseline; gap: 10px; }
-.brand b { font-family: var(--display); font-weight: 400; font-size: 1.55rem; letter-spacing: 0.01em; }
-.brand span { color: var(--lemon); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; }
-.hud { display: flex; gap: 18px; font-size: 0.9rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
-.hud strong { color: var(--ink); font-weight: 700; }
+/* HUD */
+.hud { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: flex-start; gap: clamp(12px, 8vw, 150px); }
+.hud .meter { min-width: 100px; padding: 6px 12px 8px; }
+.hud .lbl { font-size: 0.6rem; letter-spacing: 0.22em; color: var(--dim); }
+.hud .val { font-family: var(--pix); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.hud .depth .val { color: var(--sea); }
+.hud .score .val { color: var(--coral); text-align: right; }
+.pips-wrap { text-align: center; padding-top: 8px; }
+.pips { display: flex; gap: 3px; justify-content: center; }
+.pip { width: 13px; height: 13px; border: 2px solid #2b4558; background: #0c1a28; }
+.pip.on { background: var(--coral); border-color: #ffb39f; }
+.pip.t0 { background: #7fd1a8; } .pip.t1 { background: #b8c4cf; } .pip.t2 { background: var(--sea); }
+.pip.t3 { background: var(--coral); } .pip.t4 { background: #b590ff; } .pip.t5 { background: var(--lemon); }
+.pip.miss { background: #2b3440; }
+.pips-wrap .lbl { margin-top: 5px; font-size: 0.55rem; }
+.corner { position: fixed; top: 52px; z-index: 10; }
+.corner.l { left: 10px; } .corner.r { right: 10px; }
+.icon-btn { font: inherit; font-size: 0.8rem; color: var(--ink); background: var(--panel); border: 2px solid var(--edge); padding: 6px 9px; cursor: pointer; }
 
-main {
-  position: relative; z-index: 1;
-  flex: 1;
-  display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: clamp(14px, 3vw, 36px);
-  padding: 8px clamp(16px, 4vw, 40px) 32px;
-  max-width: 1040px; width: 100%; margin: 0 auto;
-}
+/* Title */
+.title { position: fixed; left: 0; right: 0; top: 13vh; z-index: 8; text-align: center; pointer-events: none; padding: 0 16px; }
+.wordmark { font-family: var(--pix); font-weight: 700; font-size: clamp(2.6rem, 9vw, 5.6rem); letter-spacing: 0.06em; line-height: 1;
+  color: #fff8e0; text-shadow: 3px 0 0 var(--coral), -3px 0 0 #2a8fc4, 0 4px 0 rgba(0,0,0,0.25); }
+.sub { font-family: var(--pix); color: #0f5d86; letter-spacing: 0.4em; font-size: clamp(0.9rem, 2.4vw, 1.25rem); margin-top: 14px; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
+.tag { color: #2f5f7c; font-size: 0.85rem; margin-top: 12px; letter-spacing: 0.06em; }
+.start { position: fixed; left: 50%; bottom: 7vh; transform: translateX(-50%); z-index: 10; width: min(560px, calc(100% - 32px)); text-align: center; }
+.big-btn { width: 100%; font-family: var(--pix); font-size: 1.35rem; letter-spacing: 0.18em; color: var(--ink); background: rgba(6,18,32,0.9);
+  border: 3px solid var(--sea); padding: 18px; cursor: pointer; box-shadow: 0 0 22px rgba(76,195,230,0.35), 4px 4px 0 rgba(0,0,0,0.5); }
+.big-btn:hover { background: rgba(14,36,58,0.95); }
+.start-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.start-row .lbl { font-size: 0.68rem; letter-spacing: 0.16em; color: var(--dim); }
+.chip-btn { font: inherit; font-size: 0.72rem; letter-spacing: 0.12em; color: var(--ink); background: rgba(6,18,32,0.85); border: 2px solid var(--edge); padding: 7px 12px; cursor: pointer; }
+.chip-btn.on { border-color: var(--lemon); color: var(--lemon); }
 
-/* Depth gauge */
-.gauge { position: relative; display: flex; flex-direction: column; align-items: center; min-height: 420px; }
-.gauge-label { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 8px; }
-.ruler { position: relative; flex: 1; width: 100%; border-left: 2px solid var(--line); margin-left: 34px; }
-.tick { position: absolute; left: -2px; display: flex; align-items: center; gap: 6px; transform: translateY(-50%); font-size: 0.66rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tick::before { content: ""; width: 10px; height: 2px; background: var(--line); }
-.tick.calypso { color: var(--coral); }
-.tick.calypso::before { background: var(--coral); }
-.diver {
-  position: absolute; left: -16px; width: 30px; height: 30px; transform: translateY(-50%);
-  transition: top 1.4s cubic-bezier(.3,.7,.2,1);
-  filter: drop-shadow(0 0 8px rgba(255, 210, 63, 0.6));
-}
+/* Prompt card */
+.card { position: fixed; left: 50%; z-index: 9; width: min(470px, calc(100% - 32px)); transform: translateX(-50%); padding: 16px 20px 14px; transition: top .5s ease, opacity .3s ease; }
+.card .k { font-size: 0.66rem; letter-spacing: 0.22em; color: var(--coral); }
+.card h2 { font-family: var(--mono); font-weight: 600; font-size: clamp(1.15rem, 3.4vw, 1.5rem); line-height: 1.32; margin: 8px 0 10px; text-wrap: balance; }
+.card .hint { font-size: 0.68rem; color: var(--dim); letter-spacing: 0.06em; }
 
-/* Stage */
-.stage { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: clamp(20px, 3.4vw, 36px);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-h1, h2, h3 { font-family: var(--display); font-weight: 400; text-wrap: balance; margin: 0; }
-h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); line-height: 1.02; }
-h2 { font-size: clamp(1.6rem, 4.2vw, 2.4rem); line-height: 1.12; }
-p { margin: 0; line-height: 1.55; max-width: 62ch; }
-.lede { color: var(--ink-dim); font-size: 1.06rem; margin-top: 12px; }
+.countdown { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 10; padding: 8px 16px; font-size: 0.78rem; letter-spacing: 0.08em; color: var(--dim); }
+.countdown b { color: var(--ink); }
 
-.rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
-.rule { border-top: 2px solid var(--lemon); padding-top: 10px; font-size: 0.95rem; color: var(--ink-dim); }
-.rule b { display: block; color: var(--ink); font-size: 1rem; margin-bottom: 2px; }
+/* Answer bar */
+.bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 10; width: min(560px, calc(100% - 24px)); }
+.bar-row { display: flex; gap: 10px; align-items: center; }
+.ring { width: 54px; height: 54px; flex: none; position: relative; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--pix); font-size: 1.1rem; color: var(--sea); }
+.ring.low span { color: var(--coral); }
+#answer { flex: 1; min-width: 0; font: inherit; font-size: 1.05rem; color: var(--ink); background: rgba(5,14,26,0.92); border: 2px solid rgba(76,195,230,0.55); padding: 13px 12px; outline: none; }
+#answer:focus { border-color: var(--sea); box-shadow: 0 0 14px rgba(76,195,230,0.3); }
+#answer.shake { animation: shake .32s; border-color: var(--coral); }
+@keyframes shake { 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+.dive-btn { font-family: var(--pix); font-size: 1rem; letter-spacing: 0.14em; color: #2a0f0a; background: var(--coral); border: 2px solid #ffb39f; padding: 13px 16px; cursor: pointer; }
+.dive-btn:hover { background: #ff9278; }
+.timeline { height: 3px; background: rgba(76,195,230,0.18); margin: 6px 0 0 64px; }
+.timeline i { display: block; height: 100%; background: var(--sea); transform-origin: left; }
+.nope { position: absolute; left: 64px; right: 0; bottom: 100%; margin-bottom: 8px; text-align: center; font-size: 0.78rem; color: var(--lemon); text-shadow: 0 1px 2px #000; min-height: 1.2em; }
 
-.tiers { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 22px; }
-.tier-chip { border-radius: 12px; padding: 10px 8px; text-align: center; background: rgba(255,255,255,0.06); border: 1px solid var(--line); }
-.tier-chip .dot { width: 14px; height: 14px; border-radius: 50%; margin: 0 auto 6px; }
-.tier-chip .nm { font-size: 0.78rem; font-weight: 600; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }
-.tier-chip .pt { font-size: 0.78rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+/* Sinking answer tag */
+.drop { position: fixed; z-index: 8; transform: translate(-50%, -50%) rotate(-3deg); padding: 7px 14px; font-family: var(--pix); font-size: 1.15rem; color: var(--coral);
+  background: rgba(30, 10, 14, 0.82); border: 2px solid rgba(255,122,89,0.55); white-space: nowrap; pointer-events: none; }
+.drop::after { content: " \25BE"; }
 
-.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
-button {
-  font: inherit; font-weight: 700; cursor: pointer;
-  border-radius: 999px; padding: 13px 24px; border: 2px solid transparent;
-  transition: transform .12s ease, background .2s ease;
-}
-button:active { transform: translateY(1px); }
-button:focus-visible, input:focus-visible { outline: 3px solid var(--lemon); outline-offset: 3px; }
-.btn-main { background: var(--lemon); color: #10304a; }
-.btn-main:hover { background: #ffdf6e; }
-.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
-.btn-ghost:hover { border-color: var(--ink-dim); }
-.small-note { font-size: 0.85rem; color: var(--ink-dim); margin-top: 14px; }
+/* Verdict */
+.verdict { position: fixed; left: 50%; z-index: 9; transform: translateX(-50%); width: min(420px, calc(100% - 32px)); padding: 14px 18px; text-align: center; cursor: pointer; }
+.verdict .tier { font-family: var(--pix); font-size: 1.05rem; letter-spacing: 0.2em; }
+.verdict .ans { font-family: var(--pix); font-size: 1.7rem; margin: 6px 0 2px; overflow-wrap: anywhere; }
+.verdict .pts { font-size: 0.82rem; letter-spacing: 0.1em; color: var(--dim); }
+.verdict .quip { font-size: 0.85rem; margin-top: 8px; }
+.verdict .tap { font-size: 0.62rem; letter-spacing: 0.16em; color: var(--dim); margin-top: 10px; }
 
-/* Play */
-.qmeta { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 0.82rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-dim); }
-.pips { display: flex; gap: 6px; }
-.pip { width: 22px; height: 6px; border-radius: 3px; background: var(--line); }
-.pip.done { background: var(--ink-dim); }
-.pip.now { background: var(--lemon); }
-.prompt { margin-top: 16px; }
-.timer { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; margin-top: 22px; }
-.timer i { display: block; height: 100%; width: 100%; background: var(--lemon); transform-origin: left; }
-.timer.low i { background: var(--coral); }
-form.answer { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
-form.answer input {
-  flex: 1 1 260px; min-width: 0;
-  font: inherit; font-size: 1.2rem; color: var(--ink);
-  background: rgba(0,0,0,0.25); border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px;
-}
-form.answer input::placeholder { color: rgba(185,203,214,0.6); }
-.secs { font-variant-numeric: tabular-nums; }
-
-/* Reveal */
-.verdict { display: flex; align-items: center; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
-.badge { display: inline-flex; align-items: center; gap: 10px; border-radius: 999px; padding: 10px 18px 10px 12px; font-weight: 800; color: #0d2a40; font-size: 1.05rem; }
-.badge .dot { width: 18px; height: 18px; border-radius: 50%; background: rgba(0,0,0,0.22); }
-.badge.miss { background: rgba(255,255,255,0.12); color: var(--ink); }
-.gain { font-family: var(--display); font-size: 2rem; font-variant-numeric: tabular-nums; }
-.you { color: var(--ink-dim); margin-top: 10px; }
-.you q { color: var(--ink); quotes: "\201C" "\201D"; }
-.deeper { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px; }
-.deeper h3 { font-family: var(--body); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); }
-.deeper ul { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.deeper li { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; }
-.deeper li .dot { width: 9px; height: 9px; border-radius: 50%; }
-
-/* End */
-.big-depth { font-family: var(--display); font-size: clamp(3rem, 11vw, 5.6rem); line-height: 1; font-variant-numeric: tabular-nums; margin-top: 8px; }
-.big-depth small { font-size: 0.4em; color: var(--ink-dim); margin-left: 6px; }
-.zone { color: var(--lemon); font-weight: 700; margin-top: 8px; }
-.log { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 8px; }
-.log li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.05); }
-.log .dot { width: 14px; height: 14px; border-radius: 50%; }
-.log .q { font-size: 0.88rem; color: var(--ink-dim); }
-.log .a { font-weight: 600; overflow-wrap: anywhere; }
-.log .pts { font-variant-numeric: tabular-nums; font-weight: 700; }
-.copied { color: var(--lemon); font-weight: 600; align-self: center; }
+/* End screen */
+.end { position: fixed; inset: 0; z-index: 12; overflow-y: auto; padding: 70px 16px 60px; }
+.end-inner { width: min(620px, 100%); margin: 0 auto; display: grid; gap: 18px; }
+.end h3 { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.22em; color: var(--dim); font-weight: 500; margin: 0 0 10px; }
+.sec { padding: 18px 18px 16px; }
+.headline { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.headline .n { font-family: var(--pix); font-size: clamp(3.4rem, 13vw, 5.4rem); line-height: 1; }
+.headline .m { font-family: var(--pix); color: var(--sea); font-size: 1.3rem; }
+.headline .mode { margin-left: auto; font-size: 0.7rem; letter-spacing: 0.18em; color: var(--dim); }
+.zone-line { color: var(--lemon); margin-top: 6px; font-size: 0.9rem; }
+.chart svg { width: 100%; height: auto; display: block; }
+.bearing { display: grid; gap: 2px; }
+.bearing div { display: grid; grid-template-columns: 74px 1fr; gap: 12px; padding: 8px 10px; font-size: 0.82rem; color: var(--dim); border-left: 3px solid transparent; }
+.bearing div b { font-weight: 500; font-variant-numeric: tabular-nums; }
+.bearing div.you { color: var(--ink); background: rgba(255,255,255,0.06); border-left-color: var(--lemon); }
+.catch { display: grid; gap: 8px; }
+.round { border: 2px solid rgba(150,200,230,0.16); background: rgba(255,255,255,0.03); }
+.round > button { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 22px 1fr auto; gap: 12px; align-items: center; width: 100%; padding: 10px 12px; }
+.round > button:focus-visible { outline: 2px solid var(--lemon); }
+.round .no { font-family: var(--pix); color: var(--dim); }
+.round .q { font-size: 0.68rem; letter-spacing: 0.08em; color: var(--dim); text-transform: uppercase; }
+.round .a { font-family: var(--pix); font-size: 1.05rem; margin-top: 2px; overflow-wrap: anywhere; }
+.round .p { font-family: var(--pix); font-size: 1.15rem; }
+.round .all { display: none; padding: 0 12px 12px 46px; }
+.round.open .all { display: block; }
+.all .grp { margin-top: 8px; font-size: 0.8rem; line-height: 1.5; color: var(--dim); }
+.all .grp b { display: block; font-size: 0.64rem; letter-spacing: 0.16em; font-weight: 600; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+.stats div { padding: 8px 4px; background: rgba(255,255,255,0.04); }
+.stats .v { font-family: var(--pix); font-size: 1.5rem; }
+.stats .l { font-size: 0.6rem; letter-spacing: 0.16em; color: var(--dim); }
+.next { text-align: center; font-size: 0.75rem; letter-spacing: 0.14em; color: var(--dim); margin-top: 12px; }
+.end-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.end-actions .wide { grid-column: 1 / -1; }
+.copied { text-align: center; font-size: 0.8rem; color: var(--lemon); min-height: 1.2em; overflow-wrap: anywhere; }
+.foot { text-align: center; font-size: 0.65rem; color: #4d6578; letter-spacing: 0.06em; }
 
 [hidden] { display: none !important; }
-
-@media (max-width: 720px) {
-  main { grid-template-columns: 1fr; }
-  .gauge { min-height: 0; flex-direction: row; align-items: center; gap: 10px; }
-  .gauge-label { margin: 0; }
-  .ruler { display: none; }
-  .mini-depth { display: block !important; }
-  .rules { grid-template-columns: 1fr; }
-  .tiers { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--lemon); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .hud { gap: 10px; } .hud .meter { min-width: 76px; padding: 4px 8px 6px; } .hud .val { font-size: 1.1rem; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
 }
-.mini-depth { display: none; font-variant-numeric: tabular-nums; font-weight: 700; }
-@media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
-}
+@media (prefers-reduced-motion: reduce) { #answer.shake { animation: none; } .card { transition: none; } }
 </style>
 </head>
 <body>
-<canvas id="bubbles" aria-hidden="true"></canvas>
-<div class="tiles" aria-hidden="true"></div>
+<canvas id="world" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="scan" aria-hidden="true"></div>
 
-<header class="top">
-  <div class="brand"><b>Sicily Krillion</b><span>Rare answers sink deeper</span></div>
-  <div class="hud" id="hud" hidden>
-    <div>Prompt <strong id="hudQ">1</strong>/7</div>
-    <div>Points <strong id="hudPts">0</strong></div>
-    <div>Depth <strong id="hudDepth">0 m</strong></div>
+<div class="hud" id="hud" hidden>
+  <div class="meter px-box depth"><div class="lbl">DEPTH</div><div class="val" id="hudDepth">0m</div></div>
+  <div class="pips-wrap"><div class="pips" id="pips"></div><div class="lbl" id="hudPrompt">PROMPT 1 OF 7</div></div>
+  <div class="meter px-box score"><div class="lbl" style="text-align:right">SCORE</div><div class="val" id="hudScore">0</div></div>
+</div>
+<div class="corner r"><button class="icon-btn" id="btnSound" aria-pressed="true" title="Sound">SND ON</button></div>
+
+<!-- Title -->
+<div class="title" id="title">
+  <div class="wordmark">SICILY KRILLION</div>
+  <div class="sub">THE SICILIAN DIVE</div>
+  <div class="tag">7 prompts · 25 seconds each · rarer answers sink deeper</div>
+</div>
+<div class="start" id="start">
+  <button class="big-btn" id="btnStart">&#9660; DROP ANCHOR &#9660;</button>
+  <div class="start-row">
+    <span class="lbl" id="startLabel">TODAY'S DIVE</span>
+    <span style="display:flex;gap:8px">
+      <button class="chip-btn on" id="modeDaily">TODAY'S DIVE</button>
+      <button class="chip-btn" id="modeEndless">ENDLESS DIVE &#8734;</button>
+    </span>
   </div>
-</header>
+</div>
 
-<main>
-  <aside class="gauge" aria-label="Depth gauge">
-    <div class="gauge-label">Depth</div>
-    <div class="ruler" id="ruler">
-      <svg class="diver" id="diver" viewBox="0 0 30 30" style="top:0%" aria-hidden="true">
-        <ellipse cx="15" cy="15" rx="12" ry="8" fill="#ffd23f"/>
-        <path d="M3 15 L-3 9 L-3 21 Z" fill="#ffd23f" transform="translate(3 0)"/>
-        <circle cx="21" cy="13" r="2" fill="#10304a"/>
-        <path d="M10 11 Q14 15 10 19" stroke="#e3742f" stroke-width="2" fill="none"/>
-      </svg>
+<!-- Prompt card -->
+<div class="card px-box" id="card" hidden>
+  <div class="k" id="cardK">PROMPT 1 OF 7</div>
+  <h2 id="cardQ">Name a savory Sicilian dish</h2>
+  <div class="hint">&#9660; rarer answers sink deeper &#9660;</div>
+</div>
+<div class="countdown px-box" id="countdown" hidden>descending · the clock starts in <b id="cd">3</b></div>
+
+<!-- Answer bar -->
+<form class="bar" id="bar" autocomplete="off" hidden>
+  <div class="nope" id="nope" aria-live="polite"></div>
+  <div class="bar-row">
+    <div class="ring" id="ring"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="23" fill="rgba(5,14,26,0.9)" stroke="rgba(76,195,230,0.18)" stroke-width="4"/><circle id="ringArc" cx="27" cy="27" r="23" fill="none" stroke="#4cc3e6" stroke-width="4" stroke-dasharray="144.5" stroke-dashoffset="0"/></svg><span id="secs">25</span></div>
+    <input id="answer" type="text" placeholder="type one answer…" aria-label="Your answer" maxlength="60" spellcheck="false">
+    <button class="dive-btn" type="submit">DIVE</button>
+  </div>
+  <div class="timeline"><i id="tl"></i></div>
+</form>
+
+<div class="drop" id="drop" hidden></div>
+<div class="verdict px-box" id="verdict" hidden>
+  <div class="tier" id="vTier">RARE</div>
+  <div class="ans" id="vAns">“Vicuña”</div>
+  <div class="pts" id="vPts">+60 PTS · sink 600m</div>
+  <div class="quip" id="vQuip"></div>
+  <div class="tap">TAP TO KEEP DIVING</div>
+</div>
+
+<!-- End -->
+<div class="end" id="end" hidden>
+  <div class="end-inner">
+    <div class="sec px-box">
+      <div class="headline"><span class="n" id="eScore">0</span><span class="m" id="eDepth">-0m</span><span class="mode" id="eMode">TODAY'S DIVE</span></div>
+      <div class="zone-line" id="eZone"></div>
     </div>
-    <div class="mini-depth" id="miniDepth">0 m</div>
-  </aside>
-
-  <section class="stage">
-    <!-- Start -->
-    <div class="panel" id="screenStart">
-      <h1>Dive into Sicily</h1>
-      <p class="lede">Seven prompts about the island from our presentation: its food, its geography, Mount Etna and its culture. Any correct answer counts, but the obvious ones keep you near the surface. Name something rarer and you sink deeper.</p>
-      <div class="rules">
-        <div class="rule"><b>25 seconds</b>Type one answer per prompt and press Enter.</div>
-        <div class="rule"><b>Rarer scores more</b>Every right answer has a rarity tier, from Plankton up to One in a Krillion.</div>
-        <div class="rule"><b>10 m per point</b>A perfect dive reaches 7,000 m, deeper than the bottom of the Mediterranean.</div>
-      </div>
-      <div class="tiers" id="tierLegend"></div>
-      <div class="actions">
-        <button class="btn-main" id="btnDaily">Start today's dive</button>
-        <button class="btn-ghost" id="btnRandom">Random dive</button>
-      </div>
-      <p class="small-note">Everyone who starts today's dive gets the same seven prompts, so the class can compare depths.</p>
+    <div class="sec px-box chart"><h3>DIVE LOG · DEEPER = RARER</h3><div id="eChart"></div></div>
+    <div class="sec px-box"><h3>THE BEARING</h3><div class="bearing" id="eBearing"></div></div>
+    <div class="sec px-box"><h3>THE CATCH · TAP A ROUND FOR EVERY ANSWER</h3><div class="catch" id="eCatch"></div></div>
+    <div class="sec px-box"><h3>LOGBOOK</h3><div class="stats" id="eStats"></div><div class="next" id="eNext"></div></div>
+    <div class="end-actions">
+      <button class="big-btn wide" id="btnCopy" style="font-size:1rem;padding:14px">COPY RESULT</button>
+      <button class="chip-btn" id="btnEndless">KEEP DIVING &#8734;</button>
+      <button class="chip-btn" id="btnToday">TODAY'S DIVE</button>
     </div>
-
-    <!-- Play -->
-    <div class="panel" id="screenPlay" hidden>
-      <div class="qmeta">
-        <span id="qCat">Food</span>
-        <div class="pips" id="pips"></div>
-      </div>
-      <h2 class="prompt" id="qText">Name a savory Sicilian dish</h2>
-
-      <div id="askBox">
-        <div class="timer" id="timer"><i id="timerBar"></i></div>
-        <form class="answer" id="answerForm" autocomplete="off">
-          <input id="answerInput" type="text" placeholder="Type your answer" aria-label="Your answer" maxlength="60">
-          <button class="btn-main" type="submit">Dive</button>
-          <button class="btn-ghost" type="button" id="btnPass">Pass</button>
-        </form>
-        <p class="small-note"><span class="secs" id="secs">25</span> seconds left</p>
-      </div>
-
-      <div id="revealBox" hidden>
-        <div class="verdict">
-          <span class="badge" id="badge"><span class="dot"></span><span id="badgeText">Swordfish</span></span>
-          <span class="gain" id="gain">+60</span>
-        </div>
-        <p class="you" id="youLine"></p>
-        <div class="deeper">
-          <h3 id="deeperTitle">Deeper answers you could have dived for</h3>
-          <ul id="deeperList"></ul>
-        </div>
-        <div class="actions">
-          <button class="btn-main" id="btnNext">Next prompt</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- End -->
-    <div class="panel" id="screenEnd" hidden>
-      <p class="small-note" style="margin-top:0" id="endMode">Today's dive</p>
-      <div class="big-depth"><span id="endDepth">0</span><small>m</small></div>
-      <p class="zone" id="endZone">Sunlight zone</p>
-      <p class="lede" id="endLine"></p>
-      <ul class="log" id="endLog"></ul>
-      <div class="actions">
-        <button class="btn-main" id="btnCopy">Copy my result</button>
-        <button class="btn-ghost" id="btnAgain">Random dive</button>
-        <button class="btn-ghost" id="btnHome">Back to start</button>
-        <span class="copied" id="copied" hidden>Copied</span>
-      </div>
-    </div>
-  </section>
-</main>
+    <div class="copied" id="copied" aria-live="polite"></div>
+    <div class="foot">A fan-made class project inspired by Krillion. Not affiliated with krillion.io. Rarity tiers are hand-curated.</div>
+  </div>
+</div>
 
 <script>
+/* ===================== DATA ===================== */
 const TIERS = [
-  { n: "Plankton",          p: 10,  c: "#9fd8b8", sq: "\u{1F7E9}" },
-  { n: "Sardine",           p: 25,  c: "#c8d3dc", sq: "⬜" },
-  { n: "Octopus",           p: 40,  c: "#f08c6c", sq: "\u{1F7E7}" },
-  { n: "Swordfish",         p: 60,  c: "#6fb3e0", sq: "\u{1F7E6}" },
-  { n: "Bluefin Tuna",      p: 80,  c: "#8a7cf0", sq: "\u{1F7EA}" },
-  { n: "One in a Krillion", p: 100, c: "#ffd23f", sq: "\u{1F7E8}" }
+  { n: "PLANKTON",          p: 10,  sink: 100,  c: "#7fd1a8", sq: "\u{1F7E9}", quip: "Everybody's down here. Try something only a Sicilian would say." },
+  { n: "TOO CLEVER",        p: 15,  sink: 150,  c: "#b8c4cf", sq: "⬜",     quip: "Technically right. We'll allow it." },
+  { n: "SCHOOLER",          p: 30,  sink: 300,  c: "#4cc3e6", sq: "\u{1F7E6}", quip: "Swimming with the school." },
+  { n: "RARE",              p: 60,  sink: 600,  c: "#ff7a59", sq: "\u{1F7E7}", quip: "Not many people reach for that one." },
+  { n: "DEEP CUT",          p: 85,  sink: 850,  c: "#b590ff", sq: "\u{1F7EA}", quip: "That's a local's answer." },
+  { n: "ONE IN A KRILLION", p: 100, sink: 1000, c: "#ffd23f", sq: "\u{1F7E8}", quip: "Almost nobody says that. Trench-level." }
 ];
-const SECONDS = 25;
-const MAX_DEPTH = 7000;
-const CALYPSO = 5267; // Calypso Deep, Ionian Sea: deepest point of the Mediterranean
+// Source scale below: 0 obvious ... 5 obscure, "c" = too clever. REMAP turns it into TIERS index.
+const REMAP = { 0: 0, 1: 2, 2: 2, 3: 3, 4: 4, 5: 5, c: 1 };
+const SECONDS = 25, MAX_DEPTH = 7000;
 
-// Each answer: [tier, display name, ...aliases]
 const PROMPTS = [
-  { cat: "Food", q: "Name a savory Sicilian dish or street food",
-    nope: { cannoli: "Cannoli are dessert. This one wants something savory.", cannolo: "Cannoli are dessert. This one wants something savory.", granita: "Granita is a dessert. This one wants something savory.", cassata: "Cassata is a dessert. This one wants something savory.", pizza: "Pizza is from Naples. Sicily's version is sfincione, if you know it.", spaghetti: "Too general. Name a Sicilian dish." },
-    a: [
-      [0, "Arancini", "arancina", "arancine", "arancino", "rice balls", "rice ball"],
-      [1, "Pasta alla Norma", "norma", "pasta norma"],
-      [1, "Caponata"],
-      [2, "Panelle", "panella", "chickpea fritters"],
-      [2, "Sfincione", "sfinciuni", "sicilian pizza"],
-      [2, "Pasta con le sarde", "pasta with sardines", "pasta chi sardi"],
-      [3, "Pane con la milza", "pani ca meusa", "pani ca mevusa", "spleen sandwich", "milza"],
-      [3, "Busiate al pesto trapanese", "busiate", "pesto alla trapanese", "pesto trapanese"],
-      [3, "Couscous trapanese", "couscous", "cuscus", "cuscusu"],
-      [3, "Crocchè", "crocche", "cazzilli", "potato croquettes"],
-      [3, "Involtini di pesce spada", "swordfish rolls", "involtini"],
-      [4, "Pasta 'ncasciata", "ncasciata", "pasta incasciata"],
-      [4, "Scaccia", "scacce", "scaccia ragusana"],
-      [4, "'Mpanata", "mpanata", "impanata"],
-      [4, "Farsumagru", "falsomagro", "farsu magru"],
-      [4, "Pasta con i tenerumi", "tenerumi", "minestra di tenerumi"],
-      [5, "Stigghiola", "stigghiole"],
-      [5, "Frittola"],
-      [5, "Maccu", "maccu di fave", "fava bean soup"],
-      [5, "Pasta chi vruoccoli arriminati", "vruoccoli arriminati", "broccoli arriminati"],
-      [5, "Scacciata", "scacciata catanese"]
-    ]},
-  { cat: "Food", q: "Name a Sicilian dessert or sweet",
-    nope: { arancini: "Arancini are savory. This one wants a sweet.", arancina: "Arancini are savory. This one wants a sweet.", tiramisu: "Tiramisù comes from the Veneto, not Sicily.", gelato: "Gelato is all over Italy. Try the Sicilian way of eating it." },
-    a: [
-      [0, "Cannoli", "cannolo", "cannolis"],
-      [1, "Granita", "granite", "granita con brioche", "granita and brioche"],
-      [1, "Cassata", "cassata siciliana"],
-      [2, "Frutta martorana", "martorana", "frutta di martorana", "marzipan fruit", "marzipan"],
-      [2, "Brioche col gelato", "brioche con gelato", "brioche with gelato", "gelato in a brioche", "brioscia"],
-      [2, "Cassatelle", "cassatella"],
-      [2, "Torrone", "nougat"],
-      [3, "Cuccìa", "cuccia"],
-      [3, "Sfince di San Giuseppe", "sfince", "sfincia"],
-      [3, "Buccellato", "buccellati", "cucciddati", "cuccidati", "fig cookies"],
-      [3, "Pignolata", "pignolata messinese"],
-      [3, "Biancomangiare", "blancmange"],
-      [4, "Minne di Sant'Agata", "minne", "minni di sant agata", "minne di santagata", "cassatelle di sant agata"],
-      [4, "Genovesi", "genovese ericina", "genovesi di erice"],
-      [4, "Paste di mandorla", "pasta di mandorla", "almond cookies", "almond pastries"],
-      [4, "Testa di turco", "teste di turco"],
-      [4, "Nucatoli", "nucatuli"],
-      [5, "'Mpanatigghi", "mpanatigghi", "impanatigghi"],
-      [5, "Iris", "iris palermitana"],
-      [5, "Ossa dei morti", "ossa di morto", "bones of the dead"],
-      [5, "Pupi di zucchero", "pupaccena", "sugar puppets"],
-      [5, "Gelo di melone", "gelu i muluni", "watermelon pudding"]
-    ]},
-  { cat: "Geography", q: "Name a city or town in Sicily",
-    nope: { sicily: "That's the whole island. Name a town on it.", sicilia: "That's the whole island. Name a town on it.", rome: "Rome is on the mainland.", naples: "Naples is on the mainland, across the water.", napoli: "Naples is on the mainland, across the water." },
-    a: [
-      [0, "Palermo"],
-      [1, "Catania"], [1, "Messina"],
-      [2, "Siracusa", "syracuse", "siracusa"], [2, "Taormina"], [2, "Agrigento"],
-      [3, "Trapani"], [3, "Cefalù", "cefalu"], [3, "Ragusa"], [3, "Marsala"], [3, "Noto"],
-      [4, "Modica"], [4, "Erice"], [4, "Enna"], [4, "Caltanissetta"], [4, "Corleone"], [4, "Bronte"],
-      [4, "Monreale"], [4, "Piazza Armerina"], [4, "Gela"], [4, "Sciacca"], [4, "Acireale"],
-      [4, "Caltagirone"], [4, "Milazzo"], [4, "Mazara del Vallo", "mazara"], [4, "Bagheria"],
-      [5, "Scicli"], [5, "Castelbuono"], [5, "Savoca"], [5, "Palazzolo Acreide"], [5, "Sambuca di Sicilia", "sambuca"],
-      [5, "Forza d'Agrò", "forza dagro", "forza d agro"], [5, "Nicosia"], [5, "Lentini"], [5, "Augusta"], [5, "Licata"],
-      [5, "Alcamo"], [5, "Partinico"], [5, "Castellammare del Golfo"], [5, "Termini Imerese"], [5, "Vittoria"],
-      [5, "Comiso"], [5, "Randazzo"], [5, "Zafferana Etnea", "zafferana"], [5, "Nicolosi"], [5, "Porto Empedocle"]
-    ]},
-  { cat: "Geography", q: "Name an island that belongs to Sicily",
-    nope: { malta: "Malta is close, but it's its own country.", gozo: "Gozo belongs to Malta, not Sicily.", sicily: "Sicily itself doesn't count. Name a smaller island.", sardinia: "Sardinia is its own region.", corsica: "Corsica belongs to France.", capri: "Capri is in the Bay of Naples." },
-    a: [
-      [0, "Lampedusa"],
-      [1, "Stromboli"], [1, "Lipari"],
-      [2, "Vulcano"], [2, "Pantelleria"], [2, "Favignana"], [2, "Salina"],
-      [3, "Panarea"], [3, "Ustica"], [3, "Ortigia", "ortygia"], [3, "Levanzo"], [3, "Marettimo"],
-      [4, "Linosa"], [4, "Filicudi"], [4, "Alicudi"], [4, "Mozia", "motya", "san pantaleo"], [4, "Isola Bella"],
-      [5, "Lampione"], [5, "Isola delle Femmine"], [5, "Strombolicchio"], [5, "Basiluzzo"],
-      [5, "Isola delle Correnti"], [5, "Isola di Capo Passero", "capo passero"]
-    ]},
-  { cat: "Mount Etna", q: "Name a volcano in Italy",
-    nope: { fuji: "Mount Fuji is in Japan.", krakatoa: "Krakatoa is in Indonesia.", "st helens": "Mount St. Helens is in the USA." },
-    a: [
-      [0, "Etna", "mount etna", "mongibello"],
-      [1, "Vesuvius", "vesuvio", "mount vesuvius"],
-      [2, "Stromboli"],
-      [3, "Vulcano"], [3, "Campi Flegrei", "phlegraean fields"],
-      [4, "Ischia", "epomeo", "monte epomeo"], [4, "Marsili", "marsili seamount"], [4, "Pantelleria"],
-      [4, "Solfatara"], [4, "Monte Nuovo"],
-      [5, "Roccamonfina"], [5, "Monte Vulture", "vulture"], [5, "Colli Albani", "alban hills"],
-      [5, "Ferdinandea", "graham island", "empedocles volcano"], [5, "Monte Amiata", "amiata"],
-      [5, "Panarea"], [5, "Linosa"], [5, "Lipari"], [5, "Salina"], [5, "Ustica"],
-      [5, "Vulsini", "vulsini hills", "monti vulsini"], [5, "Cimini", "monti cimini"]
-    ]},
-  { cat: "Culture", q: "Name a people or power that ruled or settled Sicily",
-    nope: { italians: "Close! Try \"Kingdom of Italy\".", vikings: "Vikings didn't, but their Norman descendants did.", ottomans: "The Ottomans raided but never ruled Sicily." },
-    a: [
-      [0, "Romans", "roman", "rome", "roman empire", "ancient rome"],
-      [1, "Greeks", "greek", "ancient greeks", "ancient greece", "greece"],
-      [1, "Arabs", "arab", "moors", "moor", "saracens", "muslims", "emirate of sicily"],
-      [2, "Normans", "norman"],
-      [2, "Spanish", "spain", "spaniards"],
-      [2, "Carthaginians", "carthage", "carthaginian", "phoenicians", "phoenician"],
-      [3, "Byzantines", "byzantine", "byzantine empire", "eastern roman empire"],
-      [3, "Bourbons", "bourbon", "kingdom of the two sicilies", "two sicilies"],
-      [3, "Aragonese", "aragon", "crown of aragon"],
-      [4, "Angevins", "angevin", "anjou", "french", "france"],
-      [4, "Hohenstaufen", "swabians", "swabian"],
-      [4, "Vandals", "vandal"],
-      [4, "Ostrogoths", "ostrogoth", "goths"],
-      [4, "Kingdom of Italy", "italy"],
-      [5, "House of Savoy", "savoy", "savoyards", "piedmont"],
-      [5, "Austrians", "austria", "habsburgs", "hapsburgs", "habsburg"],
-      [5, "Fatimids", "fatimid"], [5, "Aghlabids", "aghlabid"], [5, "Kalbids", "kalbid"],
-      [5, "Sicels", "siculi", "sikels"], [5, "Sicani", "sicanians"], [5, "Elymians", "elymi"]
-    ]},
-  { cat: "Culture", q: "Name a famous sight or landmark in Sicily",
+  { q: "Name a savory Sicilian dish or street food",
+    nope: { cannoli: "Cannoli are dessert. This one wants savory.", granita: "Granita is dessert. This one wants savory.", cassata: "Cassata is dessert. This one wants savory.", spaghetti: "Too general. Name a Sicilian dish." },
+    a: [[0,"Arancini","arancina","arancine","arancino","rice balls","rice ball"],[1,"Pasta alla Norma","norma","pasta norma"],[1,"Caponata"],
+      [2,"Panelle","panella","chickpea fritters"],[2,"Sfincione","sfinciuni"],[2,"Pasta con le sarde","pasta with sardines","pasta chi sardi"],
+      [3,"Pane con la milza","pani ca meusa","pani ca mevusa","spleen sandwich","milza"],[3,"Busiate al pesto trapanese","busiate","pesto alla trapanese","pesto trapanese"],
+      [3,"Couscous trapanese","couscous","cuscus","cuscusu"],[3,"Crocchè","crocche","cazzilli","potato croquettes"],[3,"Involtini di pesce spada","swordfish rolls","involtini"],
+      [4,"Pasta 'ncasciata","ncasciata","pasta incasciata"],[4,"Scaccia","scacce","scaccia ragusana"],[4,"'Mpanata","mpanata","impanata"],[4,"Farsumagru","falsomagro","farsu magru"],[4,"Pasta con i tenerumi","tenerumi"],
+      [5,"Stigghiola","stigghiole"],[5,"Frittola"],[5,"Maccu","maccu di fave","fava bean soup"],[5,"Pasta chi vruoccoli arriminati","vruoccoli arriminati","broccoli arriminati"],[5,"Scacciata","scacciata catanese"],
+      ["c","Pizza","sicilian pizza"]] },
+  { q: "Name a Sicilian dessert or sweet",
+    nope: { arancini: "Arancini are savory. This one wants a sweet.", tiramisu: "Tiramisù is from the Veneto." },
+    a: [[0,"Cannoli","cannolo","cannolis"],[1,"Granita","granite","granita con brioche"],[1,"Cassata","cassata siciliana"],
+      [2,"Frutta martorana","martorana","frutta di martorana","marzipan fruit","marzipan"],[2,"Brioche col gelato","brioche con gelato","brioche with gelato","brioscia"],[2,"Cassatelle","cassatella"],[2,"Torrone","nougat"],
+      [3,"Cuccìa","cuccia"],[3,"Sfince di San Giuseppe","sfince","sfincia"],[3,"Buccellato","buccellati","cucciddati","cuccidati","fig cookies"],[3,"Pignolata","pignolata messinese"],[3,"Biancomangiare","blancmange"],
+      [4,"Minne di Sant'Agata","minne","minni di sant agata","minne di santagata"],[4,"Genovesi","genovese ericina"],[4,"Paste di mandorla","pasta di mandorla","almond cookies","almond pastries"],[4,"Testa di turco","teste di turco"],[4,"Nucatoli","nucatuli"],
+      [5,"'Mpanatigghi","mpanatigghi","impanatigghi"],[5,"Iris","iris palermitana"],[5,"Ossa dei morti","ossa di morto","bones of the dead"],[5,"Pupi di zucchero","pupaccena","sugar puppets"],[5,"Gelo di melone","gelu i muluni","watermelon pudding"],
+      ["c","Gelato","ice cream"]] },
+  { q: "Name a city or town in Sicily",
+    nope: { sicily: "That's the whole island. Name a town on it.", rome: "Rome is on the mainland.", naples: "Naples is on the mainland.", napoli: "Naples is on the mainland." },
+    a: [[0,"Palermo"],[1,"Catania"],[1,"Messina"],[2,"Siracusa","syracuse"],[2,"Taormina"],[2,"Agrigento"],
+      [3,"Trapani"],[3,"Cefalù","cefalu"],[3,"Ragusa"],[3,"Marsala"],[3,"Noto"],
+      [4,"Modica"],[4,"Erice"],[4,"Enna"],[4,"Caltanissetta"],[4,"Corleone"],[4,"Bronte"],[4,"Monreale"],[4,"Piazza Armerina"],[4,"Gela"],[4,"Sciacca"],[4,"Acireale"],[4,"Caltagirone"],[4,"Milazzo"],[4,"Mazara del Vallo","mazara"],[4,"Bagheria"],
+      [5,"Scicli"],[5,"Castelbuono"],[5,"Savoca"],[5,"Palazzolo Acreide"],[5,"Sambuca di Sicilia","sambuca"],[5,"Forza d'Agrò","forza dagro","forza d agro"],[5,"Nicosia"],[5,"Lentini"],[5,"Augusta"],[5,"Licata"],[5,"Alcamo"],[5,"Partinico"],[5,"Castellammare del Golfo"],[5,"Termini Imerese"],[5,"Vittoria"],[5,"Comiso"],[5,"Randazzo"],[5,"Zafferana Etnea","zafferana"],[5,"Nicolosi"],[5,"Porto Empedocle"],
+      ["c","Ortigia","ortygia"]] },
+  { q: "Name an island that belongs to Sicily",
+    nope: { malta: "Malta is close, but it's its own country.", gozo: "Gozo belongs to Malta.", sardinia: "Sardinia is its own region.", corsica: "Corsica belongs to France.", capri: "Capri is in the Bay of Naples." },
+    a: [[0,"Lampedusa"],[1,"Stromboli"],[1,"Lipari"],[2,"Vulcano"],[2,"Pantelleria"],[2,"Favignana"],[2,"Salina"],
+      [3,"Panarea"],[3,"Ustica"],[3,"Ortigia","ortygia"],[3,"Levanzo"],[3,"Marettimo"],
+      [4,"Linosa"],[4,"Filicudi"],[4,"Alicudi"],[4,"Mozia","motya","san pantaleo"],[4,"Isola Bella"],
+      [5,"Lampione"],[5,"Isola delle Femmine"],[5,"Strombolicchio"],[5,"Basiluzzo"],[5,"Isola delle Correnti"],[5,"Isola di Capo Passero","capo passero"],
+      ["c","Sicily","sicilia"]] },
+  { q: "Name a volcano in Italy",
+    nope: { fuji: "Mount Fuji is in Japan.", krakatoa: "Krakatoa is in Indonesia." },
+    a: [[0,"Etna","mount etna","mongibello"],[1,"Vesuvius","vesuvio","mount vesuvius"],[2,"Stromboli"],[3,"Vulcano"],[3,"Campi Flegrei","phlegraean fields"],
+      [4,"Ischia","epomeo","monte epomeo"],[4,"Marsili","marsili seamount"],[4,"Pantelleria"],[4,"Solfatara"],[4,"Monte Nuovo"],
+      [5,"Roccamonfina"],[5,"Monte Vulture","vulture"],[5,"Colli Albani","alban hills"],[5,"Ferdinandea","graham island","empedocles volcano"],[5,"Monte Amiata","amiata"],[5,"Panarea"],[5,"Linosa"],[5,"Lipari"],[5,"Salina"],[5,"Ustica"],[5,"Vulsini","vulsini hills","monti vulsini"],[5,"Cimini","monti cimini"]] },
+  { q: "Name a people or power that ruled or settled Sicily",
+    nope: { vikings: "Not quite. Their Norman descendants did, though.", ottomans: "The Ottomans raided but never ruled Sicily." },
+    a: [[0,"Romans","roman","rome","roman empire","ancient rome"],[1,"Greeks","greek","ancient greeks","greece"],[1,"Arabs","arab","moors","moor","saracens","muslims","emirate of sicily"],
+      [2,"Normans","norman"],[2,"Spanish","spain","spaniards"],[2,"Carthaginians","carthage","carthaginian","phoenicians","phoenician"],
+      [3,"Byzantines","byzantine","byzantine empire","eastern roman empire"],[3,"Bourbons","bourbon","kingdom of the two sicilies","two sicilies"],[3,"Aragonese","aragon","crown of aragon"],
+      [4,"Angevins","angevin","anjou","french","france"],[4,"Hohenstaufen","swabians","swabian"],[4,"Vandals","vandal"],[4,"Ostrogoths","ostrogoth","goths"],[4,"Kingdom of Italy","italy","italians"],
+      [5,"House of Savoy","savoy","savoyards","piedmont"],[5,"Austrians","austria","habsburgs","hapsburgs","habsburg"],[5,"Fatimids","fatimid"],[5,"Aghlabids","aghlabid"],[5,"Kalbids","kalbid"],[5,"Sicels","siculi","sikels"],[5,"Sicani","sicanians"],[5,"Elymians","elymi"],
+      ["c","Garibaldi","giuseppe garibaldi","redshirts","expedition of the thousand"]] },
+  { q: "Name a famous sight or landmark in Sicily",
     nope: {},
-    a: [
-      [0, "Mount Etna", "etna"],
-      [1, "Valley of the Temples", "valle dei templi", "temples of agrigento"],
-      [1, "Greek Theatre of Taormina", "teatro greco", "teatro antico di taormina", "taormina theatre", "theatre of taormina", "greek theater"],
-      [2, "Monreale Cathedral", "duomo di monreale", "monreale"],
-      [2, "Palermo Cathedral", "cattedrale di palermo"],
-      [2, "Scala dei Turchi", "turkish steps", "stair of the turks"],
-      [2, "Ortigia", "ortygia"],
-      [3, "Cappella Palatina", "palatine chapel"],
-      [3, "Teatro Massimo"],
-      [3, "Villa Romana del Casale", "villa del casale"],
-      [3, "Isola Bella"], [3, "Selinunte"], [3, "Segesta"],
-      [4, "Ear of Dionysius", "orecchio di dionisio"],
-      [4, "Capuchin Catacombs", "catacombs of the capuchins", "catacombe dei cappuccini"],
-      [4, "Quattro Canti"], [4, "Fontana Pretoria", "pretoria fountain"],
-      [4, "Noto Cathedral"], [4, "Cefalù Cathedral", "cefalu cathedral"],
-      [4, "Neapolis Archaeological Park", "neapolis", "parco archeologico della neapolis"],
-      [4, "Salt pans of Trapani", "saline di trapani", "trapani salt pans", "salt pans"],
-      [4, "Alcantara Gorge", "gole dell alcantara", "alcantara gorges"],
-      [5, "Pantalica"], [5, "Zingaro Nature Reserve", "riserva dello zingaro", "zingaro"],
-      [5, "Vendicari", "riserva di vendicari"], [5, "La Zisa", "zisa"], [5, "Castello Ursino", "ursino castle"],
-      [5, "Morgantina"], [5, "Tindari"], [5, "Cava d'Ispica", "cava dispica"],
-      [5, "Castle of Venus", "castello di venere"], [5, "Himera"], [5, "San Giovanni degli Eremiti"]
-    ]},
-  { cat: "Food", q: "Name something Sicily is famous for growing or producing",
+    a: [[0,"Mount Etna","etna"],[1,"Valley of the Temples","valle dei templi","temples of agrigento"],[1,"Greek Theatre of Taormina","teatro greco","teatro antico di taormina","taormina theatre","greek theater"],
+      [2,"Monreale Cathedral","duomo di monreale","monreale"],[2,"Palermo Cathedral","cattedrale di palermo"],[2,"Scala dei Turchi","turkish steps"],[2,"Ortigia","ortygia"],
+      [3,"Cappella Palatina","palatine chapel"],[3,"Teatro Massimo"],[3,"Villa Romana del Casale","villa del casale"],[3,"Isola Bella"],[3,"Selinunte"],[3,"Segesta"],
+      [4,"Ear of Dionysius","orecchio di dionisio"],[4,"Capuchin Catacombs","catacombs of the capuchins","catacombe dei cappuccini"],[4,"Quattro Canti"],[4,"Fontana Pretoria","pretoria fountain"],[4,"Noto Cathedral"],[4,"Cefalù Cathedral","cefalu cathedral"],[4,"Neapolis Archaeological Park","neapolis"],[4,"Salt pans of Trapani","saline di trapani","trapani salt pans","salt pans"],[4,"Alcantara Gorge","gole dell alcantara"],
+      [5,"Pantalica"],[5,"Zingaro Nature Reserve","riserva dello zingaro","zingaro"],[5,"Vendicari","riserva di vendicari"],[5,"La Zisa","zisa"],[5,"Castello Ursino","ursino castle"],[5,"Morgantina"],[5,"Tindari"],[5,"Cava d'Ispica","cava dispica"],[5,"Castle of Venus","castello di venere"],[5,"Himera"],[5,"San Giovanni degli Eremiti"]] },
+  { q: "Name something Sicily is famous for growing or producing",
     nope: {},
-    a: [
-      [0, "Lemons", "lemon"],
-      [1, "Blood oranges", "oranges", "orange", "blood orange", "arance rosse"],
-      [1, "Pistachios", "pistachio", "bronte pistachios", "bronte pistachio"],
-      [2, "Almonds", "almond"],
-      [2, "Olives", "olive", "olive oil"],
-      [2, "Wine", "marsala", "marsala wine", "nero d avola", "grapes", "grape"],
-      [3, "Tomatoes", "tomato", "pachino tomatoes", "cherry tomatoes"],
-      [3, "Capers", "caper"], [3, "Ricotta"], [3, "Tuna", "bluefin tuna"], [3, "Swordfish"],
-      [4, "Sea salt", "salt", "trapani salt"],
-      [4, "Prickly pears", "prickly pear", "fichi d india", "cactus pear", "cactus fruit"],
-      [4, "Eggplant", "eggplants", "aubergine", "melanzane"],
-      [4, "Modica chocolate", "chocolate", "cioccolato di modica"],
-      [4, "Mandarins", "mandarin", "tangerines", "tangerine"],
-      [4, "Durum wheat", "wheat", "grain"],
-      [5, "Carob", "carobs", "carrubo"], [5, "Manna", "manna ash"], [5, "Ragusano cheese", "ragusano"],
-      [5, "Caciocavallo"], [5, "Pecorino siciliano", "pecorino"], [5, "Citron", "cedro"],
-      [5, "Bottarga"], [5, "Honey", "miele", "zagara honey"], [5, "Anchovies", "anchovy", "alici"]
-    ]},
-  { cat: "Geography", q: "Name a sea, strait, river or lake in or around Sicily",
-    nope: { atlantic: "The Atlantic is too far west.", "adriatic sea": "The Adriatic is on the other side of Italy.", adriatic: "The Adriatic is on the other side of Italy." },
-    a: [
-      [0, "Mediterranean Sea", "mediterranean"],
-      [1, "Strait of Messina", "stretto di messina", "messina strait"],
-      [2, "Tyrrhenian Sea", "tyrrhenian"], [2, "Ionian Sea", "ionian"],
-      [3, "Strait of Sicily", "sicilian channel", "channel of sicily", "sicily channel"],
-      [4, "Simeto"], [4, "Alcantara"], [4, "Salso", "imera meridionale"], [4, "Lake Pergusa", "pergusa", "lago di pergusa"],
-      [5, "Stagnone", "lo stagnone", "marsala lagoon"], [5, "Anapo"], [5, "Ciane"], [5, "Belice"], [5, "Platani"],
-      [5, "Gulf of Castellammare"], [5, "Gulf of Catania"], [5, "Gulf of Palermo"], [5, "Biviere di Gela", "biviere"]
-    ]},
-  { cat: "Culture", q: "Name a famous person from Sicily",
-    nope: { "al pacino": "Al Pacino's family is Sicilian, but he was born in New York.", "frank sinatra": "Sinatra's family was Sicilian, but he was born in New Jersey.", "frederick ii": "Frederick II ruled Sicily but was born in Iesi, on the mainland.", "don corleone": "Fictional, sadly." },
-    a: [
-      [0, "Archimedes", "archimede"],
-      [1, "Luigi Pirandello", "pirandello"],
-      [1, "Vincenzo Bellini", "bellini"],
-      [2, "Giovanni Verga", "verga"],
-      [2, "Saint Agatha", "sant agata", "st agatha", "agatha"],
-      [2, "Saint Rosalia", "santa rosalia", "st rosalia", "rosalia"],
-      [2, "Giovanni Falcone", "falcone"],
-      [2, "Paolo Borsellino", "borsellino"],
-      [3, "Empedocles"], [3, "Andrea Camilleri", "camilleri"], [3, "Alessandro Scarlatti", "scarlatti"],
-      [3, "Antonello da Messina", "antonello"], [3, "Salvatore Quasimodo", "quasimodo"],
-      [3, "Giuseppe Tomasi di Lampedusa", "tomasi di lampedusa", "lampedusa"],
-      [4, "Leonardo Sciascia", "sciascia"], [4, "Ettore Majorana", "majorana"], [4, "Frank Capra", "capra"],
-      [4, "Theocritus"], [4, "Diodorus Siculus", "diodorus"], [4, "Renato Guttuso", "guttuso"],
-      [4, "Franco Battiato", "battiato"], [4, "Giuseppe Tornatore", "tornatore"],
-      [5, "Gorgias"], [5, "Stanislao Cannizzaro", "cannizzaro"], [5, "Gesualdo Bufalino", "bufalino"],
-      [5, "Elio Vittorini", "vittorini"], [5, "Ignazio Florio", "florio"], [5, "Domenico Dolce"]
-    ]}
+    a: [[0,"Lemons","lemon"],[1,"Blood oranges","oranges","orange","blood orange","arance rosse"],[1,"Pistachios","pistachio","bronte pistachios"],
+      [2,"Almonds","almond"],[2,"Olives","olive","olive oil"],[2,"Wine","marsala","marsala wine","nero d avola","grapes","grape"],
+      [3,"Tomatoes","tomato","pachino tomatoes","cherry tomatoes"],[3,"Capers","caper"],[3,"Ricotta"],[3,"Tuna","bluefin tuna"],[3,"Swordfish"],
+      [4,"Sea salt","salt","trapani salt"],[4,"Prickly pears","prickly pear","fichi d india","cactus pear"],[4,"Eggplant","eggplants","aubergine","melanzane"],[4,"Modica chocolate","chocolate","cioccolato di modica"],[4,"Mandarins","mandarin","tangerines","tangerine"],[4,"Durum wheat","wheat","grain"],
+      [5,"Carob","carobs","carrubo"],[5,"Manna","manna ash"],[5,"Ragusano cheese","ragusano"],[5,"Caciocavallo"],[5,"Pecorino siciliano","pecorino"],[5,"Citron","cedro"],[5,"Bottarga"],[5,"Honey","miele"],[5,"Anchovies","anchovy","alici"],
+      ["c","Lava","volcanic ash","ash","magma"]] },
+  { q: "Name a sea, strait, river or lake in or around Sicily",
+    nope: { atlantic: "The Atlantic is too far west.", adriatic: "The Adriatic is on the other side of Italy." },
+    a: [[0,"Mediterranean Sea","mediterranean"],[1,"Strait of Messina","stretto di messina","messina strait"],[2,"Tyrrhenian Sea","tyrrhenian"],[2,"Ionian Sea","ionian"],
+      [3,"Strait of Sicily","sicilian channel","channel of sicily","sicily channel"],
+      [4,"Simeto"],[4,"Alcantara"],[4,"Salso","imera meridionale"],[4,"Lake Pergusa","pergusa","lago di pergusa"],
+      [5,"Stagnone","lo stagnone","marsala lagoon"],[5,"Anapo"],[5,"Ciane"],[5,"Belice"],[5,"Platani"],[5,"Gulf of Castellammare"],[5,"Gulf of Catania"],[5,"Gulf of Palermo"],[5,"Biviere di Gela","biviere"]] },
+  { q: "Name a famous person from Sicily",
+    nope: { "al pacino": "Al Pacino's family is Sicilian, but he was born in New York.", "frank sinatra": "Sinatra was born in New Jersey.", "frederick ii": "Frederick II ruled Sicily but was born in Iesi, on the mainland." },
+    a: [[0,"Archimedes","archimede"],[1,"Luigi Pirandello","pirandello"],[1,"Vincenzo Bellini","bellini"],
+      [2,"Giovanni Verga","verga"],[2,"Saint Agatha","sant agata","st agatha","agatha"],[2,"Saint Rosalia","santa rosalia","st rosalia","rosalia"],[2,"Giovanni Falcone","falcone"],[2,"Paolo Borsellino","borsellino"],
+      [3,"Empedocles"],[3,"Andrea Camilleri","camilleri"],[3,"Alessandro Scarlatti","scarlatti"],[3,"Antonello da Messina","antonello"],[3,"Salvatore Quasimodo","quasimodo"],[3,"Giuseppe Tomasi di Lampedusa","tomasi di lampedusa","lampedusa"],
+      [4,"Leonardo Sciascia","sciascia"],[4,"Ettore Majorana","majorana"],[4,"Frank Capra","capra"],[4,"Theocritus"],[4,"Diodorus Siculus","diodorus"],[4,"Renato Guttuso","guttuso"],[4,"Franco Battiato","battiato"],[4,"Giuseppe Tornatore","tornatore"],
+      [5,"Gorgias"],[5,"Stanislao Cannizzaro","cannizzaro"],[5,"Gesualdo Bufalino","bufalino"],[5,"Elio Vittorini","vittorini"],[5,"Ignazio Florio","florio"],[5,"Domenico Dolce"],
+      ["c","Inspector Montalbano","montalbano","commissario montalbano"]] },
+  { q: "Name a sea creature found around Sicily",
+    nope: { "clownfish": "Clownfish live on tropical reefs, not in the Med.", "polar bear": "Wrong sea entirely." },
+    a: [[0,"Octopus","polpo","octopi","octopuses"],[0,"Tuna","tunafish"],[0,"Jellyfish","jelly fish","medusa"],[0,"Dolphin","dolphins"],[1,"Shark","sharks"],
+      [1,"Swordfish","pesce spada"],[1,"Sardines","sardine"],[1,"Squid","calamari"],[1,"Sea urchin","sea urchins","ricci"],[1,"Shrimp","prawns","prawn","gamberi"],[1,"Lobster"],[1,"Crab","crabs"],[1,"Sea turtle","loggerhead turtle","loggerhead","turtle"],[1,"Starfish","sea star"],
+      [2,"Cuttlefish","seppia"],[2,"Mussels","mussel","cozze"],[2,"Sea bream","orata","gilthead bream"],[2,"Moray eel","moray","murena"],[2,"Grouper","dusky grouper","cernia"],[2,"Seahorse","sea horse"],[2,"Red mullet","triglia"],[2,"Fin whale","sperm whale","whale"],
+      [3,"Monk seal","mediterranean monk seal"],[3,"Sunfish","ocean sunfish","mola mola"],[3,"Devil ray","mobula","manta"],[3,"Scorpionfish","scorfano"],[3,"John Dory","pesce san pietro"],[3,"Amberjack","ricciola"],[3,"Barracuda"],[3,"Conger eel","conger"],[3,"Nudibranch","sea slug"],[3,"Flying fish"],
+      [4,"Noble pen shell","pinna nobilis","pen shell"],[4,"Red coral","coral","corallium rubrum"],[4,"Sea fan","gorgonian"],[4,"Dentex"],[4,"Triggerfish"],[4,"Parrotfish"],[4,"Cuvier's beaked whale","beaked whale"],[4,"Great white shark","great white"],[4,"Blue shark"],[4,"Lanternfish"],
+      [5,"Argonaut","paper nautilus"],[5,"Venus's girdle","venus girdle"],[5,"Velella","by the wind sailor"],[5,"Sea pen"],[5,"Pyrosome"],[5,"Salp","salps"],[5,"Bearded fireworm","fireworm"],[5,"Oarfish"],[5,"Slipper lobster","cicala di mare"],[5,"Date mussel","dattero di mare"],
+      ["c","Krill"]] },
+  { q: "Name something on the flag of Sicily",
+    nope: { "green": "No green on Sicily's flag.", "white": "No white on Sicily's flag.", "eagle": "No eagle on Sicily's flag." },
+    a: [[0,"Trinacria","three legs","legs","triskelion","three bent legs"],[1,"Red"],[1,"Yellow","gold","orange"],[2,"Medusa","gorgon","medusa head","gorgon head","face","head"],[3,"Wings"],[4,"Wheat","ears of wheat","wheat ears","grain"],[5,"Snakes","snake","serpents","serpent"]] }
 ];
 
-/* ---------- matching ---------- */
+/* ===================== MATCHING ===================== */
 const STOP = new Set(["the","a","an","of","di","del","della","delle","dei","degli","dello","mount","mt","monte","lake","lago","river","fiume","sea","isola","island","isle","saint","st","san","santa","sant"]);
-function norm(s) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
-    .replace(/&/g, " and ").replace(/['’`]/g, "").replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ");
-}
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, " and ").replace(/['’`]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 function key(s) {
-  let k = norm(s).split(" ").filter(w => !STOP.has(w)).join(" ");
+  let k = norm(s).split(" ").filter(w => w && !STOP.has(w)).join(" ");
   if (!k) k = norm(s);
   if (k.length > 4 && k.endsWith("s")) k = k.slice(0, -1);
   return k.replace(/ /g, "");
 }
 function lev(a, b) {
   if (Math.abs(a.length - b.length) > 2) return 99;
-  const m = a.length, n = b.length;
-  let prev = Array.from({ length: n + 1 }, (_, j) => j);
-  for (let i = 1; i <= m; i++) {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
     const cur = [i];
-    for (let j = 1; j <= n; j++) {
-      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    }
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
     prev = cur;
   }
-  return prev[n];
+  return prev[b.length];
 }
 PROMPTS.forEach(p => {
-  p.entries = p.a.map(([tier, name, ...aliases]) => ({
-    tier, name, keys: [name, ...aliases].map(key)
-  }));
-  p.nopeKeys = Object.fromEntries(Object.entries(p.nope || {}).map(([k, v]) => [key(k), v]));
+  p.entries = p.a.map(([t, name, ...al]) => ({ tier: REMAP[t], name, keys: [name, ...al].map(key) }));
+  p.nopeKeys = Object.fromEntries(Object.entries(p.nope).map(([k, v]) => [key(k), v]));
 });
 function judge(p, raw) {
   const k = key(raw || "");
   if (!k) return null;
-  let best = null, bestD = 99;
-  for (const e of p.entries) {
-    for (const ek of e.keys) {
-      if (ek === k) return e;
-      const thr = ek.length >= 9 ? 2 : ek.length >= 5 ? 1 : 0;
-      if (thr) {
-        const d = lev(k, ek);
-        if (d <= thr && d < bestD) { best = e; bestD = d; }
-      }
-    }
+  for (const e of p.entries) if (e.keys.includes(k)) return e;
+  let best = null, bd = 99;
+  for (const e of p.entries) for (const ek of e.keys) {
+    const thr = ek.length >= 9 ? 2 : ek.length >= 5 ? 1 : 0;
+    if (!thr) continue;
+    const d = lev(k, ek);
+    if (d <= thr && d < bd) { best = e; bd = d; }
   }
   return best;
 }
 
-/* ---------- seeded selection ---------- */
-function todayStr() {
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+/* ===================== DEPTH WORLD ===================== */
+const LANDMARKS = [
+  [40, "posidonia seagrass meadows thin out", "L"],
+  [100, "the blue starts to deepen", "R"],
+  [150, "red coral clings to ledges like these", "L"],
+  [200, "most sunlight stops here · THE TWILIGHT ZONE", "R"],
+  [450, "the Marsili volcano's summit sits about this deep", "L"],
+  [600, "swordfish hunt this deep by day", "R"],
+  [1000, "THE MIDNIGHT ZONE", "L"],
+  [1200, "sperm whales chase squid down here", "R"],
+  [1500, "the Mediterranean's average depth", "L"],
+  [2000, "still about 13°C · the Med's deep water stays warm", "R"],
+  [3300, "one Mount Etna deep", "L"],
+  [3785, "the floor of the Tyrrhenian Sea", "R"],
+  [4000, "THE ABYSSAL ZONE", "L"],
+  [5267, "Calypso Deep · the Mediterranean's lowest point", "R"],
+  [6000, "THE HADAL ZONE · deeper than the Med goes", "L"],
+  [7000, "the trench floor · a perfect dive ends here", "R"]
+];
+const ZONES = [[200, "Sunlight zone"], [1000, "Twilight zone"], [4000, "Midnight zone"], [6000, "Abyssal zone"], [99999, "Hadal zone"]];
+const zoneOf = m => ZONES.find(z => m < z[0])[1];
+
+const cv = document.getElementById("world"), ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1, PX = 4, PPM = 2; // PX = pixel block size, PPM = screen px per meter
+let camY = 0, camTarget = 0, t0 = performance.now();
+const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  PX = Math.max(3, Math.round(Math.min(W, 1400) / 300));
+  PPM = H / 430;
 }
-function rng(seedStr) {
-  let h = 1779033703 ^ seedStr.length;
-  for (let i = 0; i < seedStr.length; i++) { h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+addEventListener("resize", resize); resize();
+
+const surfaceScreenY = () => -camY;            // screen y of 0 m
+const yOf = m => m * PPM - camY;               // screen y of a depth
+const camFor = (m, frac) => m * PPM - H * frac; // cam value that puts depth m at fraction of screen
+
+function hash(n) { n = (n ^ 61) ^ (n >>> 16); n = n + (n << 3); n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); n = n ^ (n >>> 15); return (n >>> 0) / 4294967296; }
+function lerpHex(a, b, t) {
+  const A = [1,3,5].map(i => parseInt(a.slice(i, i + 2), 16)), B = [1,3,5].map(i => parseInt(b.slice(i, i + 2), 16));
+  return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")";
+}
+const WATER = [[0, "#2f8fc2"], [60, "#1f6d9e"], [200, "#0e3f66"], [600, "#082a47"], [1000, "#061c33"], [2500, "#041223"], [4500, "#030b17"], [7000, "#02060d"]];
+function waterAt(m) {
+  m = Math.max(0, m);
+  for (let i = 1; i < WATER.length; i++) if (m <= WATER[i][0]) {
+    const [d0, c0] = WATER[i - 1], [d1, c1] = WATER[i];
+    return lerpHex(c0, c1, (m - d0) / (d1 - d0));
+  }
+  return WATER[WATER.length - 1][1];
+}
+const snap = v => Math.round(v / PX) * PX;
+function block(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(snap(x), snap(y), Math.max(PX, snap(w)), Math.max(PX, snap(h))); }
+
+// sprites ('.' = transparent)
+const BOAT = [
+  "..........................L.................",
+  "..........................LL................",
+  ".........................mMm................",
+  ".........................MMM................",
+  "..........................M.................",
+  "..........................M.................",
+  "..........................M.................",
+  "..........................M.................",
+  "..........................M.................",
+  "...................cccc...M.................",
+  "...................cwwc...M.................",
+  "...................cccc...M.................",
+  "..hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+  "...hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh.........",
+  "....HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH..........",
+  ".....HHHHHHHHHHHHHHHHHHHHHHHHHHHH..........."
+];
+const BOAT_C = { L: "#ffd23f", m: "#3c2a22", M: "#4a3428", c: "#e9e1cf", w: "#2a4e66", h: "#f3ead6", H: "#c8452f" };
+const OCTO = [
+  "...oooo...",
+  "..oooooo..",
+  ".oooooooo.",
+  ".oWWooWWo.",
+  ".oWkooWko.",
+  ".oooooooo.",
+  "..oooooo..",
+  ".o.o..o.o.",
+  "o..o..o..o",
+  ".o..o.o.o."
+];
+const OCTO_C = { o: "#ff7a59", W: "#fff7e8", k: "#1a1020" };
+function sprite(rows, colors, x, y, s, flip) {
+  for (let r = 0; r < rows.length; r++) for (let c = 0; c < rows[r].length; c++) {
+    const ch = rows[r][flip ? rows[r].length - 1 - c : c];
+    if (ch !== ".") { ctx.fillStyle = colors[ch]; ctx.fillRect(Math.round(x + c * s), Math.round(y + r * s), s, s); }
+  }
+}
+
+let diver = { m: 0, x: 0.7, vis: true };   // octopus position (meters)
+let tierLines = null;                        // { base, active } during a drop
+
+function drawSky(sy, t) {
+  if (sy <= 0) return;
+  const g = ctx.createLinearGradient(0, sy - H * 0.9, 0, sy);
+  g.addColorStop(0, "#7cc8ec"); g.addColorStop(1, "#e8f5f0");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, sy);
+  // sun
+  const sx = W * 0.82, syy = sy - H * 0.47, R = PX * 9;
+  for (let yy = -R; yy <= R; yy += PX) for (let xx = -R; xx <= R; xx += PX)
+    if (xx * xx + yy * yy <= R * R) block(sx + xx, syy + yy, PX, PX, (xx * xx + yy * yy > R * R * 0.6) ? "#ffe17a" : "#ffd23f");
+  // clouds
+  [[0.08, 0.40, 1], [0.38, 0.30, 1.3], [0.62, 0.42, 0.9], [0.9, 0.22, 1.1]].forEach(([fx, fy, sc], i) => {
+    const cx = ((fx * W + (reduce ? 0 : t * 6 * (i % 2 ? 1 : 0.6))) % (W + 260)) - 130, cy = sy - H * fy;
+    const u = PX * 2 * sc;
+    block(cx, cy, u * 14, u * 2, "#ffffff"); block(cx + u * 2, cy - u * 2, u * 9, u * 2, "#ffffff");
+    block(cx + u * 4, cy - u * 3.5, u * 4, u * 2, "#ffffff"); block(cx + u, cy + u * 2, u * 12, u, "#dbeef5");
+  });
+  // Mount Etna on the horizon (stepped pixel cone, snow, smoke)
+  const base = sy, ex = W * 0.06, ew = Math.min(W * 0.42, 560), eh = H * 0.16, peak = ex + ew * 0.55;
+  for (let x = ex; x < ex + ew; x += PX) {
+    const f = x < peak ? (x - ex) / (peak - ex) : 1 - (x - peak) / (ex + ew - peak);
+    const h = Math.pow(Math.max(0, f), 0.85) * eh;
+    block(x, base - h, PX, h, "#6f8fa5");
+    if (h > eh * 0.82) block(x, base - h, PX, PX * 2, "#f4f8fb");
+  }
+  for (let i = 0; i < 6; i++) {
+    const k = ((t * 0.25 + i / 6) % 1);
+    const r = PX * (2 + k * 5);
+    ctx.globalAlpha = 0.55 * (1 - k);
+    block(peak + k * 70 - r, base - eh - PX * 3 - k * 90, r * 2, r * 1.4, "#e7ecef");
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawBoat(sy, t) {
+  const s = Math.max(4, Math.round(PX * 1.35));
+  const bx = W * 0.16, by = sy - (BOAT.length - 2.5) * s + Math.sin(t * 1.6) * s * 0.6;
+  sprite(BOAT, BOAT_C, bx, by, s, false);
+}
+
+function drawWaves(sy, t) {
+  for (let x = 0; x < W; x += PX) {
+    const h = Math.round((Math.sin(x * 0.012 + t * 1.3) + Math.sin(x * 0.031 - t * 0.9) * 0.5) * 1.2) * PX;
+    block(x, sy + h - PX, PX, PX * 2, "#5fb7de");
+  }
+}
+
+function drawWater(t) {
+  const top = Math.max(0, surfaceScreenY());
+  const mTop = (top + camY) / PPM, mBot = (H + camY) / PPM;
+  const g = ctx.createLinearGradient(0, top, 0, H);
+  const steps = 6;
+  for (let i = 0; i <= steps; i++) g.addColorStop(i / steps, waterAt(mTop + (mBot - mTop) * i / steps));
+  ctx.fillStyle = g; ctx.fillRect(0, top, W, H - top);
+
+  // light rays near the surface
+  if (mTop < 220) {
+    for (let i = 0; i < 7; i++) {
+      const x0 = (i / 7) * W + Math.sin(t * 0.3 + i) * 30;
+      const len = Math.min(H, (220 - mTop) * PPM);
+      ctx.fillStyle = "rgba(190, 235, 255, 0.045)";
+      ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0 + 60, top); ctx.lineTo(x0 + 160, top + len); ctx.lineTo(x0 + 70, top + len); ctx.fill();
+    }
+  }
+
+  // per-50m chunks: marine snow + fish
+  const c0 = Math.floor(Math.max(0, mTop) / 50), c1 = Math.ceil(mBot / 50);
+  for (let c = c0; c <= c1; c++) {
+    const dm = c * 50;
+    for (let i = 0; i < 9; i++) {
+      const r = hash(c * 131 + i * 7 + 3);
+      const m = dm + hash(c * 17 + i * 3) * 50;
+      const y = yOf(m) + (reduce ? 0 : ((t * 6 * (0.5 + r)) % 30));
+      const x = r * W;
+      block(x, y, PX * 0.5, PX * 0.5, m < 200 ? "rgba(220,240,255,0.25)" : "rgba(170,210,230,0.18)");
+    }
+    const nf = dm < 200 ? 2 + Math.floor(hash(c * 991) * 2) : Math.floor(hash(c * 991) * 2.2);
+    for (let i = 0; i < nf; i++) {
+      const r = hash(c * 313 + i * 29 + 1), m = dm + hash(c * 59 + i * 11) * 50;
+      const dir = r > 0.5 ? 1 : -1, sp = 12 + r * 30;
+      let x = (r * (W + 200) + (reduce ? 0 : dir * t * sp)) % (W + 200); if (x < 0) x += W + 200; x -= 100;
+      const y = yOf(m);
+      if (y < top - 10 || y > H + 10) continue;
+      drawFish(x, y, m, dir, r, t);
+    }
+  }
+
+  // depth ruler (right edge)
+  ctx.font = `500 ${Math.max(10, Math.round(PX * 2.6))}px "IBM Plex Mono", monospace`;
+  ctx.textAlign = "right";
+  const s50 = Math.floor(Math.max(0, mTop) / 50) * 50;
+  for (let m = s50; m <= mBot + 50; m += 50) {
+    const y = yOf(m); if (y < top) continue;
+    ctx.fillStyle = "rgba(170,210,235,0.35)";
+    ctx.fillRect(W - 14, Math.round(y), m % 100 === 0 ? 12 : 6, 1);
+    if (m % 100 === 0 && m > 0) { ctx.fillStyle = "rgba(170,210,235,0.5)"; ctx.fillText("-" + m.toLocaleString() + "m", W - 18, y + 4); }
+  }
+  ctx.fillStyle = "rgba(170,210,235,0.2)"; ctx.fillRect(W - 3, top, 1, H - top);
+
+  // landmark notes
+  ctx.font = `400 ${Math.max(11, Math.round(PX * 2.8))}px "IBM Plex Mono", monospace`;
+  for (const [m, txt, side] of LANDMARKS) {
+    const y = yOf(m); if (y < top + 6 || y > H + 10) continue;
+    if (tierLines && TIERS.some(tr => Math.abs(yOf(tierLines.base + tr.sink) - y) < 22)) continue;
+    const big = txt === txt.toUpperCase() || txt.includes("ZONE");
+    ctx.fillStyle = big ? "rgba(255,210,63,0.75)" : "rgba(190,215,232,0.6)";
+    if (side === "L") { ctx.textAlign = "left"; ctx.fillText("── " + txt, 24, y + 4); }
+    else { ctx.textAlign = "right"; ctx.fillText(txt + " ──", W - 76, y + 4); }
+  }
+
+  // trench floor
+  const fy = yOf(MAX_DEPTH + 30);
+  if (fy < H) {
+    for (let x = 0; x < W; x += PX) {
+      const h = (Math.sin(x * 0.02) * 0.5 + 0.5) * PX * 5 + hash(Math.floor(x / PX)) * PX * 3;
+      block(x, fy - h, PX, H - fy + h, "#0d1520");
+    }
+  }
+}
+
+function drawFish(x, y, m, dir, r, t) {
+  const s = Math.max(2, Math.round(PX * 0.6));
+  if (m < 200) { // sardine schools
+    for (let k = 0; k < 5; k++) {
+      const fx = x + (k % 3) * s * 7 * -dir, fy = y + Math.floor(k / 2) * s * 3 + Math.sin(t * 3 + k) * s * 0.5;
+      ctx.fillStyle = "rgba(10,40,64,0.75)"; ctx.fillRect(fx, fy, s * 4, s * 1.5); ctx.fillRect(fx + (dir > 0 ? -s : s * 4), fy - s * 0.3, s, s * 2);
+    }
+  } else if (m < 1000) { // swordfish silhouettes
+    ctx.fillStyle = "rgba(4,18,32,0.85)";
+    const L = s * 12;
+    ctx.fillRect(x, y, L, s * 2.4);
+    ctx.fillRect(dir > 0 ? x + L : x - s * 8, y + s, s * 8, s * 0.6);        // sword
+    ctx.fillRect(dir > 0 ? x - s * 2 : x + L, y - s, s * 2, s * 4.4);        // tail
+    ctx.fillRect(x + L * 0.4, y - s * 2, s * 2, s * 2);                      // fin
+  } else { // anglerfish lures and glowing jellies
+    const glow = 0.5 + 0.5 * Math.sin(t * 2 + r * 10);
+    ctx.fillStyle = `rgba(140, 255, 210, ${0.35 + glow * 0.5})`;
+    ctx.fillRect(x, y, s * 1.4, s * 1.4);
+    ctx.fillStyle = "rgba(20,30,40,0.9)";
+    ctx.fillRect(x + (dir > 0 ? -s * 6 : s * 2), y + s * 2, s * 5, s * 4);
+  }
+}
+
+function drawTierLines() {
+  if (!tierLines) return;
+  ctx.font = `600 ${Math.max(11, Math.round(PX * 2.8))}px "IBM Plex Mono", monospace`;
+  ctx.textAlign = "right";
+  const x0 = W * 0.18, x1 = W * 0.78;
+  TIERS.forEach((tr, i) => {
+    const y = Math.round(yOf(tierLines.base + tr.sink));
+    if (y < -20 || y > H + 20) return;
+    const on = tierLines.active === i;
+    ctx.fillStyle = on ? tr.c : "rgba(190,215,232,0.32)";
+    for (let x = x0; x < x1; x += 8) ctx.fillRect(x, y, 4, on ? 2 : 1);
+    ctx.fillText(tr.n + " · " + tr.p, x1, y - 6);
+  });
+}
+
+function drawDiver(t) {
+  if (!diver.vis) return;
+  const s = Math.max(3, Math.round(PX * 0.85));
+  const x = W * diver.x, y = yOf(diver.m) + Math.sin(t * 2.2) * s;
+  if (y < -60 || y > H + 60) return;
+  ctx.fillStyle = "rgba(255,122,89,0.12)";
+  ctx.beginPath(); ctx.arc(x + s * 5, y + s * 5, s * 9, 0, Math.PI * 2); ctx.fill();
+  sprite(OCTO, OCTO_C, x, y, s, false);
+}
+
+let bubbles = [];
+function puff(x, y, n) { for (let i = 0; i < n; i++) bubbles.push({ x: x + (Math.random() - 0.5) * 40, y, vy: 30 + Math.random() * 60, r: 2 + Math.random() * 4, life: 1 }); }
+function drawBubbles(dt) {
+  bubbles = bubbles.filter(b => (b.life -= dt * 0.5) > 0);
+  for (const b of bubbles) {
+    b.y -= b.vy * dt; b.x += Math.sin(b.y * 0.05) * 0.4;
+    ctx.strokeStyle = `rgba(220,240,255,${b.life * 0.6})`; ctx.lineWidth = 1;
+    ctx.strokeRect(Math.round(b.x), Math.round(b.y), b.r, b.r);
+  }
+}
+
+let lastT = performance.now();
+function frame(now) {
+  const t = (now - t0) / 1000, dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+  camY += (camTarget - camY) * (reduce ? 1 : Math.min(1, dt * 3.2));
+  ctx.clearRect(0, 0, W, H);
+  const sy = surfaceScreenY();
+  drawSky(sy, t);
+  drawWater(t);
+  if (sy > -60 && sy < H + 60) { drawBoat(sy, t); drawWaves(sy, t); }
+  drawTierLines();
+  drawDiver(t);
+  drawBubbles(dt);
+  if (drop.active) stepDrop(dt);
+  requestAnimationFrame(frame);
+}
+
+/* ===================== SOUND ===================== */
+let actx = null, soundOn = true;
+function beep(freq, dur, type, vol, slide) {
+  if (!soundOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type || "square"; o.frequency.value = freq;
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, actx.currentTime + dur);
+    g.gain.value = vol || 0.05; g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+    o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+  } catch (e) {}
+}
+const sfx = {
+  tick: () => beep(660, 0.06, "square", 0.03),
+  go: () => beep(880, 0.12, "square", 0.04),
+  nope: () => beep(140, 0.18, "sawtooth", 0.04, 90),
+  blub: () => { beep(420, 0.16, "sine", 0.08, 160); setTimeout(() => beep(300, 0.14, "sine", 0.06, 120), 90); },
+  tier: i => beep(330 + i * 110, 0.22, "triangle", 0.06),
+  slack: () => beep(200, 0.4, "triangle", 0.05, 70)
+};
+
+/* ===================== GAME STATE ===================== */
+const $ = id => document.getElementById(id);
+const todayStr = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+function rng(seed) {
+  let h = 1779033703 ^ seed.length;
+  for (let i = 0; i < seed.length; i++) { h = Math.imul(h ^ seed.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
   let a = h >>> 0;
-  return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  return () => { a = (a + 0x6D2B79F5) | 0; let x = Math.imul(a ^ (a >>> 15), 1 | a); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
 }
 function pick7(rand) {
   const idx = PROMPTS.map((_, i) => i);
@@ -555,223 +700,306 @@ function pick7(rand) {
   return idx.slice(0, 7);
 }
 
-/* ---------- state + UI ---------- */
-const $ = id => document.getElementById(id);
-let run = null, timerStart = 0, raf = 0, answered = false;
+let mode = "daily", run = null, phase = "title", timer = null, endsAt = 0;
+const drop = { active: false, m: 0, target: 0, v: 0, tier: 0 };
 
-function buildLegend() {
-  $("tierLegend").innerHTML = TIERS.map(t =>
-    `<div class="tier-chip"><div class="dot" style="background:${t.c}"></div><div class="nm">${t.n}</div><div class="pt">${t.p} pts</div></div>`
-  ).join("");
-}
-function buildRuler() {
-  const r = $("ruler");
-  [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000].forEach(m => {
-    const t = document.createElement("div");
-    t.className = "tick";
-    t.style.top = (m / MAX_DEPTH * 100) + "%";
-    t.textContent = m.toLocaleString() + " m";
-    r.appendChild(t);
-  });
-  const c = document.createElement("div");
-  c.className = "tick calypso";
-  c.style.top = (CALYPSO / MAX_DEPTH * 100) + "%";
-  c.title = "Calypso Deep, the deepest point of the Mediterranean";
-  c.textContent = "Med floor";
-  r.appendChild(c);
+function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+function dailyDone() { const s = store("sk-daily"); return s && s.date === todayStr() ? s : null; }
+
+function setMode(m) {
+  mode = m;
+  $("modeDaily").classList.toggle("on", m === "daily");
+  $("modeEndless").classList.toggle("on", m === "endless");
+  const done = m === "daily" && dailyDone();
+  $("startLabel").textContent = m === "daily" ? (done ? "TODAY'S DIVE · ALREADY LOGGED" : "TODAY'S DIVE · " + todayStr()) : "ENDLESS DIVE · NEW PROMPTS EVERY TIME";
+  $("btnStart").innerHTML = done ? "VIEW TODAY'S LOG" : "&#9660; DROP ANCHOR &#9660;";
 }
 
-function mix(a, b, t) {
-  const pa = a.match(/\w\w/g).map(h => parseInt(h, 16)), pb = b.match(/\w\w/g).map(h => parseInt(h, 16));
-  return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
-}
-function setDepth(points) {
-  const m = points * 10;
-  const t = Math.min(m / MAX_DEPTH, 1);
-  $("diver").style.top = (t * 100) + "%";
-  document.documentElement.style.setProperty("--sea-top", mix("1f8fb8", "06223a", Math.pow(t, 0.8)));
-  document.documentElement.style.setProperty("--sea-bot", mix("0b4f7a", "010812", Math.pow(t, 0.8)));
-  $("hudPts").textContent = points;
-  $("hudDepth").textContent = m.toLocaleString() + " m";
-  $("miniDepth").textContent = m.toLocaleString() + " m";
-}
-function zone(m) {
-  if (m < 200) return "Sunlight zone";
-  if (m < 1000) return "Twilight zone";
-  if (m < 4000) return "Midnight zone";
-  if (m < 6000) return "Abyssal zone";
-  return "Hadal zone";
+function showTitle() {
+  phase = "title";
+  ["hud", "card", "bar", "countdown", "verdict", "drop", "end"].forEach(id => $(id).hidden = true);
+  $("title").hidden = false; $("start").hidden = false;
+  diver = { m: 2, x: 0.62, vis: true };
+  tierLines = null;
+  camTarget = camFor(0, 0.58);
+  setMode(mode);
 }
 
-function show(id) {
-  ["screenStart", "screenPlay", "screenEnd"].forEach(s => $(s).hidden = s !== id);
-  $("hud").hidden = id !== "screenPlay";
-}
-
-function startRun(mode) {
-  const rand = mode === "daily" ? rng("sicily-" + todayStr()) : Math.random;
-  run = { mode, order: pick7(rand), i: 0, points: 0, log: [] };
-  setDepth(0);
-  show("screenPlay");
-  ask();
-}
-
-function ask() {
-  const p = PROMPTS[run.order[run.i]];
-  answered = false;
-  $("qCat").textContent = p.cat;
-  $("qText").textContent = p.q;
-  $("hudQ").textContent = run.i + 1;
-  $("pips").innerHTML = run.order.map((_, k) => `<span class="pip ${k < run.i ? "done" : k === run.i ? "now" : ""}"></span>`).join("");
-  $("askBox").hidden = false;
-  $("revealBox").hidden = true;
-  const inp = $("answerInput");
-  inp.value = "";
-  inp.focus();
-  timerStart = performance.now();
-  $("timer").classList.remove("low");
-  cancelAnimationFrame(raf);
-  tick();
-}
-function tick() {
-  const left = Math.max(0, SECONDS - (performance.now() - timerStart) / 1000);
-  $("timerBar").style.transform = `scaleX(${left / SECONDS})`;
-  $("secs").textContent = Math.ceil(left);
-  $("timer").classList.toggle("low", left <= 6);
-  if (left <= 0) { submit(null, true); return; }
-  raf = requestAnimationFrame(tick);
-}
-
-function submit(raw, timedOut) {
-  if (answered) return;
-  answered = true;
-  cancelAnimationFrame(raf);
-  const p = PROMPTS[run.order[run.i]];
-  const hit = raw ? judge(p, raw) : null;
-  const pts = hit ? TIERS[hit.tier].p : 0;
-  run.points += pts;
-  run.log.push({ q: p.q, raw: raw || "", hit, pts });
-
-  const badge = $("badge");
-  if (hit) {
-    const t = TIERS[hit.tier];
-    badge.className = "badge";
-    badge.style.background = t.c;
-    $("badgeText").textContent = t.n;
-    $("gain").textContent = "+" + pts;
-    $("youLine").innerHTML = `You said <q>${esc(raw)}</q>` + (key(raw) !== key(hit.name) ? `, counted as ${esc(hit.name)}.` : ".");
-  } else {
-    badge.className = "badge miss";
-    badge.style.background = "";
-    $("badgeText").textContent = timedOut ? "Time's up" : raw ? "Not on the list" : "Passed";
-    $("gain").textContent = "+0";
-    const hint = raw && p.nopeKeys[key(raw)];
-    $("youLine").innerHTML = raw
-      ? `You said <q>${esc(raw)}</q>. ` + (hint ? esc(hint) : "That one isn't in this prompt's answer set.")
-      : timedOut ? "The timer ran out before you answered." : "No answer this time.";
+function startRun() {
+  if (mode === "daily") {
+    const done = dailyDone();
+    if (done) { run = done.run; phase = "end"; $("title").hidden = true; $("start").hidden = true; return showEnd(true); }
   }
-
-  const deeper = p.entries
-    .filter(e => !hit || (e.tier > hit.tier))
-    .sort((a, b) => b.tier - a.tier)
-    .slice(0, 6);
-  $("deeperTitle").textContent = hit && hit.tier === 5 ? "You hit the deepest tier. Other Krillion-level answers" : "Deeper answers you could have dived for";
-  const list = deeper.length ? deeper : p.entries.filter(e => e.tier === 5 && e !== hit).slice(0, 6);
-  $("deeperList").innerHTML = list.map(e => `<li><span class="dot" style="background:${TIERS[e.tier].c}"></span>${esc(e.name)}</li>`).join("");
-
-  $("askBox").hidden = true;
-  $("revealBox").hidden = false;
-  $("btnNext").textContent = run.i === 6 ? "See my depth" : "Next prompt";
-  $("btnNext").focus();
-  setDepth(run.points);
+  const rand = mode === "daily" ? rng("sicily-krillion-" + todayStr()) : Math.random;
+  run = { mode, date: todayStr(), order: pick7(rand), i: 0, score: 0, depth: 0, log: [] };
+  $("title").hidden = true; $("start").hidden = true;
+  $("hud").hidden = false;
+  sfx.go();
+  nextPrompt();
 }
 
-function next() {
+function renderHud() {
+  $("hudDepth").textContent = Math.round(run.depth).toLocaleString() + "m";
+  $("hudScore").textContent = run.score;
+  $("hudPrompt").textContent = "PROMPT " + Math.min(run.i + 1, 7) + " OF 7";
+  $("pips").innerHTML = run.order.map((_, k) => {
+    const l = run.log[k];
+    const cls = l ? (l.hit ? "t" + l.hit.tier : "miss") : (k === run.i ? "on" : "");
+    return `<span class="pip ${cls}"></span>`;
+  }).join("");
+}
+
+function placeCard() {
+  // card sits a little below the diver's current depth
+  $("card").style.top = Math.max(84, Math.min(H * 0.38, yOf(run.depth) + 24)) + "px";
+}
+
+function nextPrompt() {
+  const p = PROMPTS[run.order[run.i]];
+  phase = "countdown";
+  renderHud();
+  $("verdict").hidden = true; $("drop").hidden = true; tierLines = null;
+  diver = { m: run.depth, x: 0.12, vis: true };
+  camTarget = camFor(run.depth, 0.2);
+  $("cardK").textContent = "PROMPT " + (run.i + 1) + " OF 7";
+  $("cardQ").textContent = p.q;
+  $("card").hidden = false; $("card").style.opacity = 1;
+  setTimeout(placeCard, 30);
+  $("bar").hidden = true;
+  $("countdown").hidden = false;
+  let n = 3; $("cd").textContent = n; sfx.tick();
+  clearInterval(timer);
+  timer = setInterval(() => {
+    n--;
+    if (n > 0) { $("cd").textContent = n; sfx.tick(); return; }
+    clearInterval(timer); openAnswer();
+  }, 800);
+}
+
+function openAnswer() {
+  phase = "ask";
+  $("countdown").hidden = true;
+  $("bar").hidden = false; $("nope").textContent = "";
+  const inp = $("answer"); inp.value = ""; inp.disabled = false; inp.focus();
+  sfx.go();
+  endsAt = performance.now() + SECONDS * 1000;
+  clearInterval(timer);
+  timer = setInterval(tickClock, 100);
+  tickClock();
+}
+
+function tickClock() {
+  const left = Math.max(0, (endsAt - performance.now()) / 1000);
+  $("secs").textContent = Math.ceil(left);
+  $("ringArc").style.strokeDashoffset = 144.5 * (1 - left / SECONDS);
+  $("ringArc").setAttribute("stroke", left <= 6 ? "#ff7a59" : "#4cc3e6");
+  $("ring").classList.toggle("low", left <= 6);
+  $("tl").style.transform = `scaleX(${left / SECONDS})`;
+  if (left <= 0) { clearInterval(timer); resolve(null, ""); }
+}
+
+function trySubmit(raw) {
+  if (phase !== "ask") return;
+  raw = raw.trim(); if (!raw) return;
+  const p = PROMPTS[run.order[run.i]];
+  const hit = judge(p, raw);
+  if (!hit) {
+    const hint = p.nopeKeys[key(raw)];
+    $("nope").textContent = `“${raw}”: ${hint ? hint + " " : "no bite. "}try again`;
+    const inp = $("answer"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+    inp.select();
+    sfx.nope();
+    return;
+  }
+  clearInterval(timer);
+  resolve(hit, raw);
+}
+
+function resolve(hit, raw) {
+  phase = "sinking";
+  const p = PROMPTS[run.order[run.i]];
+  $("bar").hidden = true; $("answer").blur();
+  run.log.push({ pi: run.order[run.i], raw, hit: hit ? { tier: hit.tier, name: hit.name } : null });
+  if (!hit) {
+    sfx.slack();
+    $("card").style.opacity = 0.35;
+    showVerdict(null, raw);
+    setTimeout(() => advanceReady(), 300);
+    renderHud();
+    return;
+  }
+  const tr = TIERS[hit.tier];
+  $("card").style.opacity = 0;
+  tierLines = { base: run.depth, active: -1 };
+  drop.active = true; drop.m = run.depth; drop.target = run.depth + tr.sink; drop.v = 0; drop.tier = hit.tier; drop.name = hit.name;
+  const d = $("drop"); d.textContent = "“" + hit.name + "”"; d.hidden = false; d.style.color = "#ff7a59";
+  diver.x = 0.56;
+  puff(W * 0.5, yOf(run.depth), 14);
+  sfx.blub();
+}
+
+function stepDrop(dt) {
+  // ease the tag down to its tier line; camera and octopus follow
+  const remaining = drop.target - drop.m;
+  const speed = reduce ? remaining / dt : Math.max(60, remaining * 2.4);
+  drop.m = Math.min(drop.target, drop.m + speed * dt);
+  diver.m = drop.m - 12;
+  camTarget = camFor(drop.m, 0.42);
+  // light up each tier line as we pass it
+  let passed = -1;
+  TIERS.forEach((tr, i) => { if (drop.m >= tierLines.base + tr.sink - 0.5) passed = i; });
+  if (passed !== tierLines.active) { tierLines.active = passed; if (passed >= 0) sfx.tier(passed); }
+  run.depthShown = drop.m;
+  $("hudDepth").textContent = Math.round(drop.m).toLocaleString() + "m";
+  const d = $("drop");
+  d.style.left = W * 0.5 + "px"; d.style.top = yOf(drop.m) - 18 + "px";
+  if (Math.random() < 0.25) puff(W * 0.5, yOf(drop.m) - 10, 1);
+  if (drop.m >= drop.target - 0.1) {
+    drop.active = false;
+    const tr = TIERS[drop.tier];
+    d.style.color = tr.c; d.style.borderColor = tr.c;
+    run.score += tr.p; run.depth = drop.target;
+    renderHud();
+    showVerdict(drop.tier, drop.name);
+    setTimeout(() => advanceReady(), 300);
+  }
+}
+
+let autoTimer = null;
+function showVerdict(tier, name) {
+  const v = $("verdict");
+  if (tier === null) {
+    $("vTier").textContent = "THE LINE WENT SLACK"; $("vTier").style.color = "#8fa7b8";
+    $("vAns").textContent = name ? "“" + name + "”" : "no answer";
+    $("vPts").textContent = "+0 PTS · sink 0m";
+    $("vQuip").textContent = "Time ran out. Tap to see what was down there at the end.";
+    v.style.top = Math.max(90, Math.min(H * 0.5, yOf(run.depth) + 150)) + "px";
+  } else {
+    const tr = TIERS[tier];
+    $("vTier").textContent = tr.n; $("vTier").style.color = tr.c;
+    $("vAns").textContent = "“" + name + "”";
+    $("vPts").textContent = `+${tr.p} PTS · sink ${tr.sink.toLocaleString()}m`;
+    $("vQuip").textContent = tr.quip;
+    v.style.top = Math.min(H - 190, yOf(run.depth) + 34) + "px";
+  }
+  v.hidden = false;
+}
+function advanceReady() {
+  phase = "verdict";
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(advance, 3200);
+}
+function advance() {
+  if (phase !== "verdict") return;
+  clearTimeout(autoTimer);
   run.i++;
   if (run.i >= 7) return finish();
-  ask();
+  nextPrompt();
 }
+
+/* ===================== END ===================== */
+const BEARING = [[0, 150, "Plankton. Lots of Mediterranean left below you."], [151, 250, "Schooler. Swimming with the class."], [251, 350, "Rare. Past the swordfish. Nice."], [351, 449, "Deep cut. You dive like a Sicilian fisherman."], [450, 700, "One in a krillion. Calypso Deep material."]];
 
 function finish() {
-  const m = run.points * 10;
-  show("screenEnd");
-  $("endMode").textContent = run.mode === "daily" ? "Today's dive · " + todayStr() : "Random dive";
-  $("endDepth").textContent = m.toLocaleString();
-  $("endZone").textContent = zone(m);
-  const krill = run.log.filter(l => l.hit && l.hit.tier === 5).length;
-  let line;
-  if (m >= CALYPSO) line = `You went below ${CALYPSO.toLocaleString()} m, deeper than the Calypso Deep, the bottom of the Mediterranean.`;
-  else if (m >= 3000) line = `Strong dive. The floor of the Mediterranean is at ${CALYPSO.toLocaleString()} m, ${(CALYPSO - m).toLocaleString()} m below you.`;
-  else line = `Most dives start near the surface. Try naming something only a Sicilian would know.`;
-  if (krill) line += ` You found ${krill} One in a Krillion answer${krill > 1 ? "s" : ""}.`;
-  $("endLine").textContent = line;
-  $("endLog").innerHTML = run.log.map(l => {
-    const t = l.hit ? TIERS[l.hit.tier] : null;
-    return `<li><span class="dot" style="background:${t ? t.c : "rgba(255,255,255,0.18)"}"></span>
-      <div><div class="q">${esc(l.q)}</div><div class="a">${l.hit ? esc(l.hit.name) + " · " + t.n : l.raw ? esc(l.raw) + " · not on the list" : "No answer"}</div></div>
-      <span class="pts">+${l.pts}</span></li>`;
-  }).join("");
-  $("copied").hidden = true;
-  $("btnCopy").focus();
+  phase = "end";
+  if (run.mode === "daily") {
+    store("sk-daily", { date: run.date, run });
+    const st = store("sk-stats") || { played: 0, total: 0, best: 0, streak: 0, last: null };
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    const yStr = y.getFullYear() + "-" + String(y.getMonth() + 1).padStart(2, "0") + "-" + String(y.getDate()).padStart(2, "0");
+    st.streak = st.last === yStr ? st.streak + 1 : (st.last === run.date ? st.streak : 1);
+    st.last = run.date; st.played++; st.total += run.score; st.best = Math.max(st.best, run.score);
+    store("sk-stats", st);
+  }
+  showEnd(false);
 }
+
+function showEnd(fromLog) {
+  ["card", "bar", "countdown", "verdict", "drop"].forEach(id => $(id).hidden = true);
+  $("hud").hidden = true;
+  tierLines = null;
+  diver = { m: run.depth, x: 0.08, vis: true };
+  camTarget = camFor(run.depth, 0.3);
+  $("eScore").textContent = run.score;
+  $("eDepth").textContent = "-" + run.depth.toLocaleString() + "m";
+  $("eMode").textContent = run.mode === "daily" ? "TODAY'S DIVE · " + run.date : "ENDLESS DIVE";
+  const krill = run.log.filter(l => l.hit && l.hit.tier === 5).length;
+  let zl = zoneOf(run.depth);
+  if (run.depth >= 5267) zl += " · below the Calypso Deep, the Mediterranean's lowest point";
+  else if (run.depth >= 1500) zl += " · deeper than the average Mediterranean";
+  if (krill) zl += ` · ${krill} one-in-a-krillion answer${krill > 1 ? "s" : ""}`;
+  $("eZone").textContent = zl;
+
+  // dive log chart
+  const w = 560, h = 190, padL = 38, padB = 26, top = 12;
+  const xs = k => padL + (w - padL - 16) * (k + 0.5) / 7, ys = pts => top + (h - top - padB) * (pts / 100);
+  let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Points per prompt, deeper means rarer">`;
+  [0, 25, 50, 75, 100].forEach(v => { svg += `<line x1="${padL}" x2="${w - 10}" y1="${ys(v)}" y2="${ys(v)}" stroke="rgba(170,210,235,0.12)"/><text x="${padL - 6}" y="${ys(v) + 4}" fill="#8fa7b8" font-size="10" text-anchor="end" font-family="IBM Plex Mono">${v ? "-" + v : "0"}</text>`; });
+  run.log.forEach((l, k) => {
+    const pts = l.hit ? TIERS[l.hit.tier].p : 0, c = l.hit ? TIERS[l.hit.tier].c : "#4d6578";
+    svg += `<line x1="${xs(k)}" x2="${xs(k)}" y1="${ys(0)}" y2="${ys(pts)}" stroke="${c}" stroke-width="2" stroke-dasharray="3 3"/>`;
+    svg += `<rect x="${xs(k) - 6}" y="${ys(pts) - 6}" width="12" height="12" fill="${c}"/>`;
+    svg += `<text x="${xs(k)}" y="${h - 8}" fill="#8fa7b8" font-size="11" text-anchor="middle" font-family="IBM Plex Mono">${k + 1}</text>`;
+  });
+  $("eChart").innerHTML = svg + "</svg>";
+
+  $("eBearing").innerHTML = BEARING.map(([a, b, txt]) => `<div class="${run.score >= a && run.score <= b ? "you" : ""}"><b>${a}${b === 700 ? "+" : "–" + b}</b><span>${txt}</span></div>`).join("");
+
+  $("eCatch").innerHTML = run.log.map((l, k) => {
+    const p = PROMPTS[l.pi], tr = l.hit ? TIERS[l.hit.tier] : null;
+    const groups = TIERS.map((T, ti) => {
+      const names = p.entries.filter(e => e.tier === ti).map(e => esc(e.name));
+      return names.length ? `<div class="grp"><b style="color:${T.c}">${T.n} · ${T.p}</b>${names.join(" · ")}</div>` : "";
+    }).reverse().join("");
+    return `<div class="round"><button aria-expanded="false"><span class="no">${k + 1}</span><span><div class="q">${esc(p.q)}</div><div class="a" style="color:${tr ? tr.c : "#8fa7b8"}">${l.hit ? esc(l.hit.name) : (l.raw ? esc(l.raw) : "no answer")}</div></span><span class="p" style="color:${tr ? tr.c : "#8fa7b8"}">${tr ? "+" + tr.p : "0"}</span></button><div class="all">${groups}</div></div>`;
+  }).join("");
+  document.querySelectorAll(".round > button").forEach(b => b.addEventListener("click", () => {
+    const r = b.parentElement; r.classList.toggle("open"); b.setAttribute("aria-expanded", r.classList.contains("open"));
+  }));
+
+  const st = store("sk-stats") || { played: 0, total: 0, best: 0, streak: 0 };
+  $("eStats").innerHTML = [["STREAK", st.streak], ["PLAYED", st.played], ["AVG", st.played ? Math.round(st.total / st.played) : 0], ["BEST", st.best]]
+    .map(([l, v]) => `<div><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+  updateNext();
+  $("copied").textContent = "";
+  $("end").hidden = false; $("end").scrollTop = 0;
+}
+function updateNext() {
+  const now = new Date(), mid = new Date(now); mid.setHours(24, 0, 0, 0);
+  const s = Math.floor((mid - now) / 1000);
+  $("eNext").textContent = "NEXT DIVE IN " + [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(v => String(v).padStart(2, "0")).join(":");
+}
+setInterval(() => { if (!$("end").hidden) updateNext(); }, 1000);
 
 function shareText() {
-  const m = run.points * 10;
   const row = run.log.map(l => l.hit ? TIERS[l.hit.tier].sq : "⬛").join("");
-  return `Sicily Krillion ${run.mode === "daily" ? todayStr() : "(random)"}\n${row}\n${m.toLocaleString()} m · ${zone(m)}`;
+  return `Sicily Krillion ${run.mode === "daily" ? run.date : "∞"}\n${row}\n${run.score} · -${run.depth.toLocaleString()}m\n${location.href.split("#")[0]}`;
 }
-async function copyResult() {
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ===================== EVENTS ===================== */
+$("bar").addEventListener("submit", e => { e.preventDefault(); trySubmit($("answer").value); });
+$("btnStart").addEventListener("click", startRun);
+$("modeDaily").addEventListener("click", () => setMode("daily"));
+$("modeEndless").addEventListener("click", () => setMode("endless"));
+$("verdict").addEventListener("click", advance);
+document.addEventListener("keydown", e => { if (phase === "verdict" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); advance(); } });
+$("btnEndless").addEventListener("click", () => { $("end").hidden = true; mode = "endless"; setMode("endless"); startRun(); });
+$("btnToday").addEventListener("click", () => { $("end").hidden = true; setMode("daily"); showTitle(); });
+$("btnCopy").addEventListener("click", async () => {
   const txt = shareText();
-  try { await navigator.clipboard.writeText(txt); $("copied").textContent = "Copied"; }
+  try { await navigator.clipboard.writeText(txt); $("copied").textContent = "Copied to clipboard"; }
   catch (e) { $("copied").textContent = txt.replace(/\n/g, "  "); }
-  $("copied").hidden = false;
-}
-
-function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
-
-/* ---------- events ---------- */
-$("btnDaily").addEventListener("click", () => startRun("daily"));
-$("btnRandom").addEventListener("click", () => startRun("random"));
-$("btnAgain").addEventListener("click", () => startRun("random"));
-$("btnHome").addEventListener("click", () => { setDepth(0); show("screenStart"); });
-$("btnNext").addEventListener("click", next);
-$("btnPass").addEventListener("click", () => submit(null, false));
-$("btnCopy").addEventListener("click", copyResult);
-$("answerForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const v = $("answerInput").value.trim();
-  if (!v) { $("answerInput").focus(); return; }
-  submit(v, false);
+});
+$("btnSound").addEventListener("click", () => {
+  soundOn = !soundOn;
+  $("btnSound").textContent = soundOn ? "SND ON" : "SND OFF";
+  $("btnSound").setAttribute("aria-pressed", soundOn);
 });
 
-/* ---------- bubbles ---------- */
-(function bubbles() {
-  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const cv = $("bubbles"), ctx = cv.getContext("2d");
-  let W, H, list = [];
-  function size() {
-    const dpr = window.devicePixelRatio || 1;
-    W = cv.clientWidth; H = cv.clientHeight;
-    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  size(); window.addEventListener("resize", size);
-  for (let i = 0; i < 36; i++) list.push({ x: Math.random(), y: Math.random(), r: 1.5 + Math.random() * 4, s: 0.15 + Math.random() * 0.5, w: Math.random() * 6 });
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    for (const b of list) {
-      if (!reduce) { b.y -= b.s / H * 2.2; if (b.y < -0.02) { b.y = 1.02; b.x = Math.random(); } }
-      const x = b.x * W + Math.sin((b.y * 10) + b.w) * 6;
-      ctx.beginPath(); ctx.arc(x, b.y * H, b.r, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(244,239,226,0.22)"; ctx.lineWidth = 1; ctx.stroke();
-    }
-    if (!reduce) requestAnimationFrame(draw);
-  }
-  draw();
-})();
-
-buildLegend();
-buildRuler();
-setDepth(0);
+camY = camFor(0, 0.58);
+showTitle();
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
